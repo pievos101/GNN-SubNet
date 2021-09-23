@@ -1,4 +1,4 @@
-## GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
+## GNN-SubNet: Subnetwork Detection with Explainable Graph Neural Networks
 
 DATA STRUCTURE
 
