@@ -15,10 +15,10 @@ from gnn_explainer import GNNExplainer
 
 from community_detection import find_communities
 
-dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
-                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", 
-                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
-                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC/KIDNEY_PPI.txt", 
+                                ["/KIRC/KIDNEY_Methy_FEATURES.txt", 
+                                 "/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
+                                 "/KIRC/KIDNEY_SURVIVAL.txt")
 print('--------DATASET LOADED-------------')
 model_path = 'kirc_model.pth'
 no_of_features = dataset[0].x.shape[1]
