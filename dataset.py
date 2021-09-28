@@ -269,6 +269,7 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     graphs = []
     edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
     edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+    
     np.savetxt('KIRC/edge_index.txt', edge_index, fmt='%d')
     for idx in range(temp.shape[0]):
         graphs.append(Data(x=torch.tensor(temp[idx]).float(),
