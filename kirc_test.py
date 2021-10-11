@@ -15,10 +15,10 @@ from gnn_explainer import GNNExplainer
 
 from community_detection import find_communities
 
-dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC/KIDNEY_PPI.txt", 
-                                ["/KIRC/KIDNEY_Methy_FEATURES.txt", 
-                                 "/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
-                                 "/KIRC/KIDNEY_SURVIVAL.txt")
+dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/GNN-SubNet-Project/KIDNEY_OV_PPI.txt", 
+                                ["/home/bastian/GNN-SubNet-Project/KIDNEY_OV_Methy_FEATURES.txt", 
+                                 "/home/bastian/GNN-SubNet-Project/KIDNEY_OV_mRNA_FEATURES.txt"], 
+                                 "/home/bastian/GNN-SubNet-Project/KIDNEY_OV_TARGET.txt")
 print('--------DATASET LOADED-------------')
 model_path = 'kirc_model.pth'
 no_of_features = dataset[0].x.shape[1]
@@ -141,6 +141,8 @@ for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
 accuracy = counter/len(true_class_array) * 100 
 print("Accuracy: {}%".format(accuracy))
 print("Test loss {}".format(test_loss))
+
+sys.exit() 
 
 checkpoint = {
     'state_dict': best_model.state_dict(),
