@@ -1,4 +1,4 @@
-from dataset import generate, generate_confusion
+from dataset import generate, generate_confusion, load_syn_dataset
 from gnn import MUTAG_Classifier
 from gnn_explainer import GNNExplainer
 import networkx as nx 
@@ -13,8 +13,6 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 
 nodes_per_graph_nr = 20
-path = 'graphs_1_4'
-#dataset = load_dataset(path, type_of_feat="float")
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
@@ -24,7 +22,12 @@ edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
 sigma=0
-dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices)
+no_of_features = 2
+
+#dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
+
+path = 'graphs_3_11'
+dataset = load_syn_dataset(path, type_of_feat="float")
 
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
 train_dataloader = DataLoader(
@@ -34,7 +37,7 @@ train_dataloader = DataLoader(
 
 epoch_nr = 50
 
-input_dim = 1
+input_dim = no_of_features
 n_classes = 2
 
 model = MUTAG_Classifier(input_dim, n_classes)
@@ -109,7 +112,7 @@ print("Test loss {}".format(test_loss))
 
 graph = test_dataset[0]
 explainer = GNNExplainer(model, epochs=500)
-nfm, em, logits_init, logits_post = explainer.explain_graph(graph, torch.zeros(nodes_per_graph_nr))
+nfm, em = explainer.explain_graph(graph)
 em = em.detach().numpy()
 
 Path(f"{path}/gnn_explainer").mkdir(parents=True, exist_ok=True)

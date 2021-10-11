@@ -9,7 +9,9 @@
 import copy
 import os
 from pathlib import Path
-
+import networkx as nx
+from networkx.utils import arbitrary_element
+from networkx.algorithms import isolate
 import pandas as pd
 import dgl
 import dgl.data
@@ -18,9 +20,12 @@ import torch
 from torch._C import Graph
 from torch_geometric.data.data import Data
 
+from gnn_training_utils import _plain_bfs
 from sklearn.preprocessing import minmax_scale
 from features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data
 from graph_dataset import GraphDataset
+from s2vgraph import S2VGraph
+from gnn_training_utils import check_if_graph_is_connected
 
 def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices, no_of_features):
     """
@@ -34,6 +39,7 @@ def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices
     :dataset: Dataset of graphs
     :path: path where dataset is stored
     """
+    graph = nx.to_directed(graph)
     edges = torch.zeros(size=(2,len(graph.edges())), dtype=torch.long)
     for e, idx in zip(graph.edges(), range(len(graph.edges()))):
         edges[0][idx] = e[0]
@@ -149,18 +155,18 @@ def load_syn_dataset(path: str, indices=None, type_of_feat="int"):
         edge_index = np.loadtxt(edge_path)
         features = np.loadtxt(feat_path)
         if type_of_feat=="int":
-            graphs.append(Data(x=torch.transpose(torch.tensor([features]),0,1).float(),
+            graphs.append(Data(x=torch.tensor(features).float(),
                                edge_index=torch.tensor(edge_index, dtype=torch.long), 
                                y=torch.tensor(int(features[indices[0]]) ^ int(features[indices[1]]), dtype=torch.long)))
         else:
             if idx < int(no_of_graphs/2):
-                graphs.append(Data(x=torch.transpose(torch.tensor([features]),0,1).float(),
+                graphs.append(Data(x=torch.tensor(features).float(),
                                edge_index=torch.tensor(edge_index, dtype=torch.long), 
-                               y=torch.tensor(1), dtype=torch.long))
+                               y=torch.tensor(0), dtype=torch.long))
             else:
-                graphs.append(Data(x=torch.transpose(torch.tensor([features]),0,1).float(),
+                graphs.append(Data(x=torch.tensor(features).float(),
                                edge_index=torch.tensor(edge_index, dtype=torch.long), 
-                               y=torch.tensor(0), dtype=torch.long))        
+                               y=torch.tensor(1), dtype=torch.long))        
 
     dataset = GraphDataset(graphs)
     return dataset
@@ -184,26 +190,8 @@ def save_results(path: str, confusion_array: list, gnn_edge_masks: list,
     np.savetxt(f'{path}/results/log_logits_init.csv', log_logits_init, delimiter=',', fmt='%.3f')
     log_logits_post = np.reshape(log_logits_post, (len(log_logits_post), -1))
     np.savetxt(f'{path}/results/log_logits_post.csv', log_logits_post, delimiter=',', fmt='%.3f')
-    
-    
-def generate_confusion(true_value: int, predicted_value: int):
-    """
-    Generates values for confusion array
-    :param : 
-    """
-    
-    if true_value == predicted_value:
-        if true_value == 1:
-            return "TP" 
-        if true_value == 0:
-            return "TN" 
-    else:
-        if true_value == 1:
-            return "FP" 
-        if true_value == 0:
-            return "FN" 
 
-
+    
 def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     """
     Loads KIRC dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
@@ -255,6 +243,56 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
     ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
 
+    graphs = []
+    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+
+    first_idx = edge_path.index('/')
+    np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    s = list(copy.copy(edge_index[0]))
+    t = list(copy.copy(edge_index[1]))
+
+    s.extend(t)
+    nodes = list(col_pairs.values())
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    edges = np.array(edge_index)
+
+    edges = [(row[0].item(), row[1].item()) for row in edges.T]
+    graph.add_edges_from(edges)
+
+    nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
+
+    nodes = list(nodes)
+
+    isolated_nodes = list(nx.isolates(graph))
+    
+    col_pairs_for_iso = {no: name for name,no in zip(old_cols, new_cols)}
+
+    iso_nodes = [col_pairs_for_iso[x] for x in isolated_nodes]
+    for feat in feats:
+        feat.drop(columns = iso_nodes, inplace=True)
+    
+    ppi = ppi.drop(ppi[(~ppi.protein1.isin(nodes)) | (~ppi.protein2.isin(nodes))].index)
+    
+    drop_nodes = [col_pairs_for_iso[x] for x in nodes]
+    for feat in feats:
+        feat.drop(feat.columns.difference(drop_nodes), 1, inplace=True)
+
+    new_nodes = list(range(len(nodes)))
+    new_nodes_dict = {old: new for old,new in zip(nodes, new_nodes)}
+    ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(new_nodes_dict)
+    ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(new_nodes_dict)   
+    for feat in feats:
+        feat.rename(columns=new_nodes_dict, inplace=True)
+
+    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+
+    first_idx = edge_path.index('/')
+    np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
+
     temp = np.stack(feats, axis=-1)
     new_temp = []
     for item in temp:
@@ -262,18 +300,48 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     
     temp = np.array(new_temp)
 
-    #survival_path = "KIRC/KIDNEY_SURVIVAL.txt"
     survival = pd.read_csv(survival_path, delimiter=' ')
     survival_values = survival.to_numpy()
 
-    graphs = []
-    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
-    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
-    
-    np.savetxt('KIRC/edge_index.txt', edge_index, fmt='%d')
     for idx in range(temp.shape[0]):
         graphs.append(Data(x=torch.tensor(temp[idx]).float(),
                         edge_index=torch.tensor(edge_index, dtype=torch.long),
                         y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
     
     return graphs, col_pairs, row_pairs
+
+def convert_to_s2vgraph(graphs):
+    s2v_graphs = []
+    for graph in graphs:
+        edge_index = graph.edge_index
+        if type(edge_index) == torch.Tensor:
+            edge_index = edge_index.numpy()
+
+        s = list(copy.copy(edge_index[0]))
+        t = list(copy.copy(edge_index[1]))
+
+        s.extend(t)
+        nodes = list(set(s))
+        g = nx.Graph()
+        g.add_nodes_from(nodes)
+        edges = np.array(edge_index)
+
+        edges = [(row[0].item(), row[1].item()) for row in edges.T]
+        g.add_edges_from(edges)
+
+        g = nx.to_directed(g)
+        edge_index = torch.zeros(size=(2,len(g.edges())), dtype=torch.long)
+        for e, idx in zip(g.edges(), range(len(g.edges()))):
+            edge_index[0][idx] = e[0]
+            edge_index[1][idx] = e[1]
+        
+        neighbors = []
+        degrees = []
+        for n in nodes:
+            neighbors.append(list(g.neighbors(n)))
+            degrees.append(len(neighbors[-1]))
+        
+        max_neighbor = max(degrees)
+        s2v_graphs.append(S2VGraph(g, graph.y.item(), None, graph.x, edge_index, max_neighbor, neighbors))
+    
+    return s2v_graphs

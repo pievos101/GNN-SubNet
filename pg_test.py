@@ -10,7 +10,7 @@ import copy
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from dataset import generate, save_results, generate_confusion
+from dataset import generate, save_results, generate_confusion, load_syn_dataset
 from gnn import MUTAG_Classifier
 from gnn_explainer import GNNExplainer as gnnexp
 from pg_explainer import PGExplainer
@@ -29,6 +29,9 @@ sigma = 0
 no_of_features = 2
 
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
+#path = 'graphs_3_11'
+#dataset = load_syn_dataset(path, type_of_feat='float')
+
 
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
 train_dataloader = DataLoader(

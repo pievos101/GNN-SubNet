@@ -1,5 +1,3 @@
-## GNN-SubNet: Subnetwork Detection with Explainable Graph Neural Networks
-
 DATA STRUCTURE
 
 Each dataset needs to be in a specific folder which can be named however user likes it, but it has to end with node indices of selected nodes which compute class for a graph e.g graphs_1_2, anything_9_12 etc. 

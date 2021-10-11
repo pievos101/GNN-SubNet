@@ -387,7 +387,7 @@ class GNNExplainer(torch.nn.Module):
                 log_logits = self.__to_log_prob__(out)
                 loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
                 loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
-                #loss_xx = loss_xx + param*torch.abs(loss_hit - LOGITS2[dd][PRED[dd]]) + (1-param)*torch.abs(loss_fail - LOGITS2[dd][abs(PRED[dd]-1)])   
+                #loss_xx = loss_xx + loss_hit + abs(LOGITS2[dd][PRED[dd]] - (-log_logits[0, PRED[dd][0]]))
                 loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
             #print(loss_xx)
             loss_xx.backward()

@@ -10,25 +10,24 @@ import copy
 from matplotlib import pyplot as plt
 import networkx as nx
 
-from dataset import generate, save_results, generate_confusion
+from dataset import generate, save_results, generate_confusion, load_syn_dataset
 from gnn import MUTAG_Classifier
 from gnn_explainer import GNNExplainer as gnnexp
 from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
+from gnn_training_utils import check_if_graph_is_connected
 
 nodes_per_graph_nr = 20
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
-
 #Select nodes for label calculation --------------------------------------------------------------------------------
 edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
-sigma = 0
+sigma = 0.5
 no_of_features = 2
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
-
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
 train_dataloader = DataLoader(
     train_dataset,
@@ -117,6 +116,3 @@ for idx in range(no_of_runs):
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_edge_masks = np.reshape(em, (len(em), -1))
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks, delimiter=',', fmt='%.3f')
-
-
-    

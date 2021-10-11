@@ -9,7 +9,7 @@ from numpy.core.fromnumeric import sort
 import networkx as nx
 from math import sqrt
 
-graphs = 'graphs_1_3'
+graphs = 'graphs_3_11'
 no_of_runs = 20
 
 def visualize_graph(node_idx, edge_index, edge_mask, graphs, dev, exp, y=None,
@@ -131,25 +131,24 @@ def load_gnn_explainer(graphs, dev):
     edges = list(map(lambda x: f'{int(x[0])}-{int(x[1])}', edges))
 
     count5, count3, count = 0, 0, 0
-    for i in range(no_of_runs):
-        path = f"{graphs}/{dev}/gnn_explainer/gnn_edge_masks{i}.csv"
-        temp = np.loadtxt(open(path, "rb"), delimiter=",", skiprows=0)
-        temp = temp.T
-        gnn_edge_masks.append(temp)
-        sorted_edges = [x for _, x in sorted(zip(temp,edges), reverse=True)]
-        index = sorted_edges.index(edge)
-        if index == 0:
-            count5 += 1
-            count3 += 1
-            count += 1
-        elif index < 3:
-            count3 += 1
-            count5 += 1
-        elif index < 5:
-            count5 += 1
+    path = f"{graphs}/{dev}/gnn_explainer/gnn_edge_masks.csv"
+    temp = np.loadtxt(open(path, "rb"), delimiter=",", skiprows=0)
+    temp = temp.T
+    gnn_edge_masks.append(temp)
+    sorted_edges = [x for _, x in sorted(zip(temp,edges), reverse=True)]
+    index = sorted_edges.index(edge)
+    if index == 0:
+        count5 += 1
+        count3 += 1
+        count += 1
+    elif index < 3:
+        count3 += 1
+        count5 += 1
+    elif index < 5:
+        count5 += 1
     
     plot_gnn_explainer(graphs, dev, gnn_edge_masks, edges, edge_index)
-    return [count/no_of_runs, count3/no_of_runs, count5/no_of_runs]
+    return [count, count3, count5]
 
 def plot_gnn_modified(graphs, dev, gnn_edge_masks, edges, edge_index):
     gnn_edge_masks = np.array(gnn_edge_masks)
@@ -172,7 +171,7 @@ def plot_gnn_modified(graphs, dev, gnn_edge_masks, edges, edge_index):
     plt.savefig(f"{graphs}/gnn_modified_errorbar_{dev[-1]}", dpi=1000)
     plt.clf()
 
-def load_modified_gnn(graphs, dev):
+def load_modified_gnn(graphs, dev, no_of_runs):
     last_idx = graphs.rindex('_')
     second_last_idx = graphs[:last_idx].rindex('_')
     idx1 = int(graphs[second_last_idx+1:last_idx])
@@ -240,35 +239,34 @@ def load_pg(graphs, dev):
     edges = list(map(lambda x: f'{int(x[0])}-{int(x[1])}', edges))
 
     count5, count3, count = 0, 0, 0
-    for i in range(no_of_runs):
-        path = f"{graphs}/{dev}/pg_results/pg_edge_masks{i}.csv"
-        temp = np.loadtxt(open(path, "rb"), delimiter=",", skiprows=0)
-        temp = np.array(temp.T)
-        means = temp.mean(1)
-        pg_edge_masks.append(means)
-        sorted_edges = [x for _, x in sorted(zip(means,edges), reverse=True)]
-        index = sorted_edges.index(edge)
-        if index == 0:
-            count5 += 1
-            count3 += 1
-            count += 1
-        elif index < 3:
-            count3 += 1
-            count5 += 1
-        elif index < 5:
-            count5 += 1
+    path = f"{graphs}/{dev}/pg_results/pg_edge_masks.csv"
+    temp = np.loadtxt(open(path, "rb"), delimiter=",", skiprows=0)
+    temp = np.array(temp.T)
+    means = temp.mean(1)
+    pg_edge_masks.append(means)
+    sorted_edges = [x for _, x in sorted(zip(means,edges), reverse=True)]
+    index = sorted_edges.index(edge)
+    if index == 0:
+        count5 += 1
+        count3 += 1
+        count += 1
+    elif index < 3:
+        count3 += 1
+        count5 += 1
+    elif index < 5:
+        count5 += 1
     
     plot_pg(graphs, dev, pg_edge_masks, edges, edge_index)
-    return [count/no_of_runs, count3/no_of_runs, count5/no_of_runs]
+    return [count, count3, count5]
 
-def plot_multiple(graphs):
+def plot_multiple(graphs, no_of_runs):
     p = Path(graphs)
     devs = sorted([x.name for x in p.iterdir() if x.is_dir()])
     if 'dataset' in devs:
         devs.remove('dataset')
     for dev in devs:
         pg = load_pg(graphs, dev)
-        mod = load_modified_gnn(graphs, dev)
+        mod = load_modified_gnn(graphs, dev, no_of_runs)
         gnn = load_gnn_explainer(graphs, dev)
         x = np.array([1,3,5])
         w = 0.05
@@ -286,4 +284,4 @@ def plot_multiple(graphs):
         plt.savefig(f"{graphs}/coverage_{dev[-1]}", dpi=1000)
         plt.clf()
 
-plot_multiple(graphs)
+plot_multiple(graphs, no_of_runs)
