@@ -192,7 +192,7 @@ class GraphCNN(nn.Module):
         return h
 
 
-    def forward(self, batch_graph):
+    def forward(self, batch_graph, get_embedding=False):
         X_concat = torch.cat([graph.node_features for graph in batch_graph], 0)
         graph_pool = self.__preprocess_graphpool(batch_graph)
 
@@ -216,6 +216,9 @@ class GraphCNN(nn.Module):
                 h = self.next_layer(h, layer, Adj_block = Adj_block)
 
             hidden_rep.append(h)
+        
+        if get_embedding:
+            return h
 
         score_over_layer = 0
     

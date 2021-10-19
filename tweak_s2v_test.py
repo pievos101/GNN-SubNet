@@ -9,13 +9,19 @@ from pathlib import Path
 import copy
 from matplotlib import pyplot as plt
 import networkx as nx
+from torch_geometric.nn import conv
+from tqdm import tqdm
 
+
+from gnn_training_utils import pass_data_iteratively
 from dataset import generate, save_results, load_syn_dataset, convert_to_s2vgraph
 from gnn import MUTAG_Classifier
 from gnn_explainer import GNNExplainer as gnnexp
 from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from gnn_training_utils import check_if_graph_is_connected
+
+from graphcnn import GraphCNN
 
 nodes_per_graph_nr = 20
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
@@ -28,41 +34,43 @@ node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
 sigma = 0.5
 no_of_features = 2
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
+dataset = convert_to_s2vgraph(dataset)
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
 train_dataloader = DataLoader(
     train_dataset,
     batch_size=64,
     shuffle=True)
 
-epoch_nr = 50
+epoch_nr = 10
 
 input_dim = no_of_features
 n_classes = 2
-model = MUTAG_Classifier(input_dim, n_classes)
+model = GraphCNN(5, 3, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
 opt = torch.optim.Adam(model.parameters(), lr = 0.001)
 scheduler = ReduceLROnPlateau(opt, 'min')
 
 model.train()
 
 for epoch in range(epoch_nr):
+    model.train()
+    pbar = tqdm(range(50), unit='batch')
     epoch_loss = 0
-    graph_idx = 0
-    for data in train_dataloader:
-        batch = []
-        for i in range(data.y.size(0)):
-            for j in range(nodes_per_graph_nr):
-                batch.append(i)
-        logits = model(data, torch.tensor(batch))
-        loss = F.nll_loss(logits, data.y)
+    for pos in pbar:
+        selected_idx = np.random.permutation(len(train_dataset))[:32]
+
+        batch_graph = [train_dataset[idx] for idx in selected_idx]
+        logits = model(batch_graph)
+        labels = torch.LongTensor([graph.label for graph in batch_graph])
+        loss = F.cross_entropy(logits, labels)
 
         opt.zero_grad()
         loss.backward()
         opt.step()
 
         epoch_loss += loss.detach().item()
-        graph_idx += 1
-    scheduler.step(loss)
-    epoch_loss /= graph_idx
+    epoch_loss /= 50
+    print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+    pbar.set_description('epoch: %d' % (epoch))
 
 confusion_array = []
 true_class_array = []
@@ -74,23 +82,24 @@ predicted_class_array = []
 
 test_loss = 0
 
-for data in test_dataset:
-    batch = []
-    for i in range(nodes_per_graph_nr):
-        batch.append(0)
+output = pass_data_iteratively(model, test_dataset)
+predicted_class = output.max(1, keepdim=True)[1]
+labels = torch.LongTensor([graph.label for graph in test_dataset])
+correct = predicted_class.eq(labels.view_as(predicted_class)).sum().item()
+acc_test = correct / float(len(test_dataset))
 
-    output = model(data, torch.tensor(batch))
-    predicted_class = output.max(dim=1)[1]
-    true_class = data.y.item()
-    loss = F.nll_loss(output, torch.tensor([data.y]))
-    test_loss += loss
+#output = best_model(data, torch.tensor(batch))
+#predicted_class = output.max(dim=1)[1]
+#true_class = data.y.item()
+loss = F.cross_entropy(output, labels)
+test_loss = loss
 
-    predicted_class_array = np.append(predicted_class_array, predicted_class)
-    true_class_array = np.append(true_class_array, true_class)
+predicted_class_array = np.append(predicted_class_array, predicted_class)
+true_class_array = np.append(true_class_array, labels)
 
-    correct += predicted_class.eq(data.y).sum().item()
+#correct += predicted_class.eq(data.y).sum().item()
 
-test_loss /= len(test_dataset)
+#test_loss /= len(test_dataset)
 confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
 print("\nConfusion matrix:\n")
 print(confusion_matrix_gnn)
@@ -105,13 +114,14 @@ accuracy = counter/len(true_class_array) * 100
 print("Accuracy: {}%".format(accuracy))
 print("Test loss {}".format(test_loss))
 
+
 model.train()
 
 no_of_runs = 20
 lamda = 0.85
 for idx in range(no_of_runs):
     exp = GNNExplainer(model, epochs=600)
-    em = exp.explain_graph_modified(dataset, lamda)
+    em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_edge_masks = np.reshape(em, (len(em), -1))
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks, delimiter=',', fmt='%.3f')

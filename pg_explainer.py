@@ -193,6 +193,7 @@ class PGExplainer(torch.nn.Module):
             **kwargs (optional): Additional arguments passed to the GNN module.
         """
         x, edge_index = data.x, data.edge_index
+        print(x.shape, z.shape)
         assert x.shape[0] == z.shape[0]
         assert ~(batch is None and node_idxs is None)
 
@@ -306,6 +307,99 @@ class PGExplainer(torch.nn.Module):
                 full_edge_mask = edge_mask.new_zeros(num_edges)
                 full_edge_mask[hop_mask] = edge_mask.sigmoid()
                 return full_edge_mask
+
+    def train_explainer_s2v(self, data, z, s2v_data, node_idxs=None, batch=None,
+                        **kwargs):
+        r"""Trains the :obj:`explainer_model` to predict an
+        edge mask that is crucial to explain the predictions of
+        the :obj:`model`.
+        Args:
+            x (Tensor): The node feature matrix.
+            z (Tensor): Node embedding from last :class:`MessagePassing` layer
+                in :obj:`model`.
+            edge_index (LongTensor): The edge indices.
+            node_idxs (Optional, LongTensor): The nodes used for training.
+                Only required if :obj:`task` is :obj:`"node"`.
+                (default: :obj:`None`)
+            batch (optional, LongTensor): Batch vector :math:`\mathbf{b} \in
+                {\{ 0, \ldots, B-1\}}^N`, which assigns each node to a specific
+                example. Only required if :obj:`task` is :obj:`"graph"`. All
+                graphs in :attr:`batch` are used for training.
+                (default: :obj:`None`)
+            **kwargs (optional): Additional arguments passed to the GNN module.
+        """
+        #x, edge_index = data.x, data.edge_index
+        #assert x.shape[0] == z.shape[0]
+        assert ~(batch is None and node_idxs is None)
+
+        self.model.eval()
+        self.__clear_masks__()
+        #self.to(x.device)
+        optimizer = torch.optim.Adam(self.explainer_model.parameters(),
+                                     lr=self.lr)
+        self.explainer_model.train()
+
+        # Get initial prediction.
+        with torch.no_grad():
+            out = self.model(s2v_data, **
+                             kwargs) if batch is None else self.model(
+                                 s2v_data, batch=batch, **
+                                 kwargs)
+            log_logits = self.__to_log_prob__(out)
+            pred_label = log_logits.argmax(dim=-1)
+
+        if self.log:  # pragma: no cover
+            pbar = tqdm(total=self.epochs)
+            pbar.set_description('Training Explainer')
+
+        bias = self.coeffs['bias']
+        if self.task == "graph":
+            #assert (batch is not None) and x.shape[0] == batch.shape[0]
+            #assert batch.unique().shape[0] == pred_label.shape[0]
+            #batch = batch.squeeze()
+            explainer_in = self.__create_explainer_input__(data[0].edge_index,
+                                                           z).detach()
+
+            for e in range(0, self.epochs):
+                optimizer.zero_grad()
+                t = self.__get_temp__(e)
+                edge_mask = self.__compute_edge_mask__(
+                    self.explainer_model(explainer_in), t, bias=bias)
+                self.__set_masks__(edge_mask)
+                out = self.model(s2v_data,
+                                 **kwargs)
+                log_logits = self.__to_log_prob__(out)
+                loss = self.__loss__(edge_mask, log_logits, pred_label)
+                loss.backward()
+                optimizer.step()
+                if self.log:  # pragma: no cover
+                    pbar.update(1)
+                    
+        if self.log:
+            pbar.close()
+        self.__clear_masks__()
+
+    def explain_s2v(self, data, z, node_id=None, **kwargs):
+        r"""Returns an :obj:`edge_mask` that explains :obj:`model` prediction.
+        Args:
+            x (Tensor): The node feature matrix.
+            z (Tensor): Node embedding from last :class:`MessagePassing` layer.
+            edge_index (LongTensor): The edge indices.
+            node_id (Optional, int): The node id to explain.
+                Only required if :obj:`task` is :obj:`"node"`.
+            **kwargs (optional): Additional arguments passed to the GNN module.
+        :rtype: :class:`Tensor`
+        """
+        #x, edge_index = data.x, data.edge_index
+        
+        self.explainer_model.eval()
+        with torch.no_grad():
+            if self.task == "graph":
+                explainer_in = self.__create_explainer_input__(data[0].edge_index, z)
+                edge_mask = self.__compute_edge_mask__(
+                    self.explainer_model(explainer_in), training=False)
+
+                return edge_mask
 
     def __repr__(self):
         return f'{self.__class__.__name__}()'

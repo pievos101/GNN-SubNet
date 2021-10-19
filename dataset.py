@@ -39,7 +39,7 @@ def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices
     :dataset: Dataset of graphs
     :path: path where dataset is stored
     """
-    graph = nx.to_directed(graph)
+    #graph = nx.to_directed(graph)
     edges = torch.zeros(size=(2,len(graph.edges())), dtype=torch.long)
     for e, idx in zip(graph.edges(), range(len(graph.edges()))):
         edges[0][idx] = e[0]
@@ -262,9 +262,11 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     edges = [(row[0].item(), row[1].item()) for row in edges.T]
     graph.add_edges_from(edges)
 
-    nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
+    nodes = []
+    while len(nodes) < 1000:
+        nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
 
-    nodes = list(nodes)
+        nodes = list(nodes)
 
     isolated_nodes = list(nx.isolates(graph))
     

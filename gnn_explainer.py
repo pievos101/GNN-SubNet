@@ -395,6 +395,59 @@ class GNNExplainer(torch.nn.Module):
             
         return self.edge_mask.detach().sigmoid()
 
+
+    def explain_graph_modified_s2v(self, dataset, param):
+        self.model.eval()
+        self.__clear_masks__()    
+
+        PRED = []
+        LOGITS = []
+        LOGITS2 =[]
+        # Get the initial prediction.
+        with torch.no_grad():
+            for yy in range(len(dataset)):
+                x, edge_index = dataset[yy].node_features, dataset[yy].edge_mat
+                out = self.model([dataset[yy]])
+                log_logits = self.__to_log_prob__(out)
+                pp = log_logits.argmax(dim=-1)
+                PRED.append(pp)
+                LOGITS.append(-log_logits[0, pp])
+                LOGITS2.append(-log_logits[0, :])    
+
+        self.__set_masks__(dataset[0].node_features,dataset[0].edge_mat)
+        self.to(x.device)
+                                  
+        optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
+        
+        # all nodes belong to same graph
+        batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
+        
+        for epoch in range(1, self.epochs + 1):
+            loss_xx  = 0 
+            sampSize = 10
+            if epoch%50==1: 
+                ids  = np.random.randint(len(dataset), size=sampSize)
+                
+            optimizer.zero_grad()
+            for dd in ids: 
+                data = dataset[dd]
+                data_copy = copy(data)
+                h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
+                data_copy.node_features = h
+                out = self.model([data_copy])
+                log_logits = self.__to_log_prob__(out)
+                loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
+                loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
+                #loss_xx = loss_xx + loss_hit + abs(LOGITS2[dd][PRED[dd]] - (-log_logits[0, PRED[dd][0]]))
+                loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
+            #print(loss_xx)
+            loss_xx.backward()
+            optimizer.step()
+            
+        return self.edge_mask.detach().sigmoid()
+
+
+
     def plot_graph(self, node_idx, edge_index, edge_mask, y=None,
                            threshold=None,**kwargs):
         r"""Visualizes the subgraph around :attr:`node_idx` given an edge mask
