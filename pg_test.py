@@ -28,7 +28,7 @@ edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
 sigma = 0
-no_of_features = 2
+no_of_features = 1
 
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
 #path = 'graphs_3_11'
@@ -152,6 +152,7 @@ print("Accuracy: {}%".format(accuracy))
 print("Test loss {}".format(test_loss))
 
 model.train()
+
 '''
     model = MUTAG_Classifier(input_dim, n_classes)
     opt = torch.optim.Adam(model.parameters(), lr = 0.001)
