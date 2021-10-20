@@ -228,10 +228,16 @@ exp = PGExplainer(model, 32, task="graph", log=True)
 exp.train_explainer_s2v(train_dataset, z, train_graphs, None)
 test_graphs = s2v_test_dataset
 z = model(test_graphs, get_embedding=True)
-edge_mask = exp.explain_s2v(test_dataset, z)
+
+#edge_mask = exp.explain_s2v(test_dataset, z)
+test_graphs = Batch.from_data_list(test_dataset)
+edge_mask = exp.explain(test_graphs, z)
+
+em = np.reshape(edge_mask, (len(test_dataset), -1))
 
 Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)
-np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', edge_mask, delimiter=',', fmt='%.3f')
+#np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', edge_mask, delimiter=',', fmt='%.3f')
+np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', em, delimiter=',', fmt='%.3f')
 
 
 
