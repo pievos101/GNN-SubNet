@@ -120,7 +120,8 @@ model.train()
 no_of_runs = 20
 lamda = 0.85
 for idx in range(no_of_runs):
-    exp = GNNExplainer(model, epochs=600)
+    print('OURS:', idx)
+    exp = GNNExplainer(model, epochs=100)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_edge_masks = np.reshape(em, (len(em), -1))
