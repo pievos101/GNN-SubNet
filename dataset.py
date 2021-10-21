@@ -331,7 +331,7 @@ def convert_to_s2vgraph(graphs):
         edges = [(row[0].item(), row[1].item()) for row in edges.T]
         g.add_edges_from(edges)
 
-        g = nx.to_directed(g)
+        #g = nx.to_directed(g)
         edge_index = torch.zeros(size=(2,len(g.edges())), dtype=torch.long)
         for e, idx in zip(g.edges(), range(len(g.edges()))):
             edge_index[0][idx] = e[0]
