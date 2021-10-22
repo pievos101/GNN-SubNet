@@ -31,6 +31,7 @@ sigma = 0.1
 no_of_features = 1
 
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
+
 #path = 'graphs_3_11'
 #dataset = load_syn_dataset(path, type_of_feat='float')
 

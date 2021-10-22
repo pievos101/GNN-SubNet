@@ -54,7 +54,7 @@ class PGExplainer(torch.nn.Module):
     }
     # epochs=30 default
     # num_hops: Optional[int] = None
-    def __init__(self, model, out_channels: int, epochs: int = 200,
+    def __init__(self, model, out_channels: int, epochs: int = 100,
                  lr: float = 0.003, num_hops: Optional[int] = 3,
                  task: str = 'node', return_type: str = 'log_prob',
                  log: bool = True, coeffs = {
