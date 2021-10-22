@@ -12,6 +12,8 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from pathlib import Path
 from matplotlib import pyplot as plt
 
+from community_detection import find_communities
+
 nodes_per_graph_nr = 20
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
@@ -118,4 +120,8 @@ em = em.detach().numpy()
 Path(f"{path}/gnn_explainer").mkdir(parents=True, exist_ok=True)
 np.savetxt(f'{path}/gnn_explainer/gnn_edge_masks.csv', em, delimiter=',', fmt='%.3f')
 
-    
+
+np.savetxt(f'{path}/edge_masks.csv', em, delimiter=',', fmt='%.3f')
+
+avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
+print(avg_mask, coms)

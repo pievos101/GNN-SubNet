@@ -24,11 +24,11 @@ from graphcnn import GraphCNN
 
 from community_detection import find_communities
 
-dataset2, col_pairs, row_pairs = load_KIRC_dataset("LinkedOmics/KIRC/KIDNEY_PPI.txt", 
-                                ["LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], "LinkedOmicsKIRC/KIDNEY_SURVIVAL.txt")
+#dataset2, col_pairs, row_pairs = load_KIRC_dataset("KIRC/KIDNEY_PPI.txt", 
+#                                ["KIRC/KIDNEY_Methy_FEATURES.txt", "KIRC/KIDNEY_mRNA_FEATURES.txt"], "KIRC/KIDNEY_SURVIVAL.txt")
 
-#dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
-#                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
+dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
+                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
 
 print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 count = 0
@@ -190,23 +190,11 @@ exp = PGExplainer(model, 32, task="graph", log=True)
 exp.train_explainer_s2v(train_dataset, z, train_graphs, None)
 test_graphs = s2v_test_dataset
 z = model(test_graphs, get_embedding=True)
-
-#edge_mask = exp.explain_s2v(test_dataset, z)
-test_graphs = Batch.from_data_list(test_dataset)
-edge_mask = exp.explain(test_graphs, z)
-
-em = np.reshape(edge_mask, (len(test_dataset), -1))
-
-#Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)
-#np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', edge_mask, delimiter=',', fmt='%.3f')
-#np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', em, delimiter=',', fmt='%.3f')
-
-#print(edge_mask.shape, train_dataset[0].edge_index.shape)
+edge_mask = exp.explain_s2v(test_dataset, z)
+print(edge_mask.shape, train_dataset[0].edge_index.shape)
 
 #em = np.reshape(edge_mask, (len(s2v_test_dataset), -1))
-#np.savetxt('KIRC/edge_masks.txt', edge_mask, fmt='%.3f')
-
-np.savetxt('KIRC/edge_masks.txt', em, fmt='%.3f')
+np.savetxt('KIRC/edge_masks.txt', edge_mask, fmt='%.3f')
 
 avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.txt")
 print(avg_mask, coms)

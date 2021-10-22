@@ -59,6 +59,7 @@ def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices
 
     # Generating the dataset in needed form 
     data_graphs = []
+    print(graphs_nr)
     for graph_idx in range(graphs_nr):
         data_graphs.append(Data(x = torch.transpose(torch.Tensor([feats[graph_idx]]),0,1)[:,0,:],
                                 edge_index = edges, 
@@ -87,9 +88,9 @@ def generate_simple(graphs_nr: int, nodes_per_graph_nr: int, graph: Graph, node_
         edges[0][idx] = e[0]
         edges[1][idx] = e[1]
 
-    #genes, target_labels_all_graphs, node_indices = get_genes(graphs_nr, nodes_per_graph_nr,graph)
+    genes, target_labels_all_graphs, node_indices = get_genes_bernoulli(graphs_nr, nodes_per_graph_nr,graph)
     
-    genes, target_labels_all_graphs, node_indices = gen_syn_data(graphs_nr, nodes_per_graph_nr, 0, node_indices)
+    #genes, target_labels_all_graphs, node_indices = gen_syn_data(graphs_nr, nodes_per_graph_nr, 0, node_indices)
     graph = dgl.from_networkx(graph)
     graphs = []
     feats = np.zeros(shape = (graphs_nr, nodes_per_graph_nr))
@@ -331,7 +332,6 @@ def convert_to_s2vgraph(graphs):
         edges = [(row[0].item(), row[1].item()) for row in edges.T]
         g.add_edges_from(edges)
 
-        #g = nx.to_directed(g)
         edge_index = torch.zeros(size=(2,len(g.edges())), dtype=torch.long)
         for e, idx in zip(g.edges(), range(len(g.edges()))):
             edge_index[0][idx] = e[0]

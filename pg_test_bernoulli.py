@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 import networkx as nx
 from tqdm import tqdm
 
-from dataset import generate, convert_to_s2vgraph
+from dataset import generate, convert_to_s2vgraph, generate_simple
 from gnn import MUTAG_Classifier
 from pg_explainer import PGExplainer
 from graphcnn import GraphCNN
@@ -33,9 +33,9 @@ edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
 sigma = 0
-no_of_features = 2
+no_of_features = 1
 
-dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
+dataset, path = generate_simple(500, nodes_per_graph_nr, graph, node_indices)
 #path = 'graphs_3_11'
 #dataset = load_syn_dataset(path, type_of_feat='float')
 
@@ -57,12 +57,12 @@ input_dim = no_of_features
 n_classes = 2
 
 model = GraphCNN(5, 2, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
-opt = torch.optim.Adam(model.parameters(), lr = 0.01)
+opt = torch.optim.Adam(model.parameters(), lr = 0.001)
 model.train()
 min_loss = 50
 best_model = GraphCNN(5, 3, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
 min_val_loss = 150
-n_epochs_stop = 5
+n_epochs_stop = 10
 epochs_no_improve = 0
 steps_per_epoch = 35
 
@@ -189,13 +189,13 @@ torch.set_printoptions(threshold=10_000)
 '''
 train_graphs = Batch.from_data_list(train_dataset)
 z = mutag_model(train_graphs, train_graphs.batch,
-        get_embedding=True)
+    get_embedding=True)
 exp = PGExplainer(mutag_model, 32, task="graph", log=True)
 exp.train_explainer(train_graphs, z, edge_idx, None,
-                    train_graphs.batch)
+                train_graphs.batch)
 test_graphs = Batch.from_data_list(test_dataset)
 z = mutag_model(test_graphs, batch=test_graphs.batch,
-        get_embedding=True)
+    get_embedding=True)
 edge_mask = exp.explain(test_graphs, z)
 
 em = np.reshape(edge_mask, (len(test_dataset), -1))
@@ -203,46 +203,46 @@ Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)
 np.savetxt(f'{path}/pg_results/spg_edge_masks.csv', em, delimiter=',', fmt='%.3f')
 '''
 '''
-    confusion_array = []
-    true_class_array = []
-    predicted_class_array = []
-    model.eval()
-    correct = 0
-    true_class_array = []
-    predicted_class_array = []
+confusion_array = []
+true_class_array = []
+predicted_class_array = []
+model.eval()
+correct = 0
+true_class_array = []
+predicted_class_array = []
 
-    test_loss = 0
+test_loss = 0
 
-    for data in test_dataset:
-        batch = []
-        for i in range(nodes_per_graph_nr):
-            batch.append(0)
+for data in test_dataset:
+    batch = []
+    for i in range(nodes_per_graph_nr):
+        batch.append(0)
 
-        output = model(data, torch.tensor(batch))
-        predicted_class = output.max(dim=1)[1]
-        true_class = data.y.item()
-        loss = F.nll_loss(output, torch.tensor([data.y]))
-        test_loss += loss
+    output = model(data, torch.tensor(batch))
+    predicted_class = output.max(dim=1)[1]
+    true_class = data.y.item()
+    loss = F.nll_loss(output, torch.tensor([data.y]))
+    test_loss += loss
 
-        predicted_class_array = np.append(predicted_class_array, predicted_class)
-        true_class_array = np.append(true_class_array, true_class)
+    predicted_class_array = np.append(predicted_class_array, predicted_class)
+    true_class_array = np.append(true_class_array, true_class)
 
-        correct += predicted_class.eq(data.y).sum().item()
+    correct += predicted_class.eq(data.y).sum().item()
 
-    test_loss /= len(test_dataset)
-    confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
-    print("\nConfusion matrix:\n")
-    print(confusion_matrix_gnn)
+test_loss /= len(test_dataset)
+confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
+print("\nConfusion matrix:\n")
+print(confusion_matrix_gnn)
 
 
-    counter = 0
-    for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
-        if it == true_class_array[i]:
-            counter += 1
+counter = 0
+for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
+    if it == true_class_array[i]:
+        counter += 1
 
-    accuracy = counter/len(true_class_array) * 100 
-    print("Accuracy: {}%".format(accuracy))
-    print("Test loss {}".format(test_loss))
+accuracy = counter/len(true_class_array) * 100 
+print("Accuracy: {}%".format(accuracy))
+print("Test loss {}".format(test_loss))
 '''
 
 train_graphs = s2v_train_dataset

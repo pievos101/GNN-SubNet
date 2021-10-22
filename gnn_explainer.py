@@ -440,12 +440,11 @@ class GNNExplainer(torch.nn.Module):
                 loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
                 #loss_xx = loss_xx + loss_hit + abs(LOGITS2[dd][PRED[dd]] - (-log_logits[0, PRED[dd][0]]))
                 loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
-                #loss_xx = loss_xx + loss_hit 
             #print(loss_xx)
             loss_xx.backward()
             optimizer.step()
             
-        return self.edge_mask.detach()#.sigmoid()
+        return self.edge_mask.detach().sigmoid()
 
 
 

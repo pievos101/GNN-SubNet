@@ -8,8 +8,9 @@ from torch_geometric.data import Data
 from numpy.core.fromnumeric import sort
 import networkx as nx
 from math import sqrt
+from community_detection import find_communities
 
-graphs = 'graphs_3_11'
+graphs = 'graphs_0_12'
 no_of_runs = 20
 
 def visualize_graph(node_idx, edge_index, edge_mask, graphs, dev, exp, y=None,
@@ -239,11 +240,12 @@ def load_pg(graphs, dev):
     edges = list(map(lambda x: f'{int(x[0])}-{int(x[1])}', edges))
 
     count5, count3, count = 0, 0, 0
-    path = f"{graphs}/{dev}/pg_results/pg_edge_masks.csv"
+    path = f"{graphs}/pg_results/pg_edge_masks.csv"
     temp = np.loadtxt(open(path, "rb"), delimiter=",", skiprows=0)
     temp = np.array(temp.T)
     means = temp.mean(1)
     pg_edge_masks.append(means)
+    np.savetxt(f"{graphs}/edge_masks.csv", means, delimiter=',', fmt='%.5f')
     sorted_edges = [x for _, x in sorted(zip(means,edges), reverse=True)]
     index = sorted_edges.index(edge)
     if index == 0:
@@ -266,8 +268,11 @@ def plot_multiple(graphs, no_of_runs):
         devs.remove('dataset')
     for dev in devs:
         pg = load_pg(graphs, dev)
-        mod = load_modified_gnn(graphs, dev, no_of_runs)
-        gnn = load_gnn_explainer(graphs, dev)
+
+        avg_mask, coms = find_communities(f"{graphs}/dataset/graph0_edges.txt", f"{graphs}/edge_masks.csv")
+        print(avg_mask, coms)
+        #mod = load_modified_gnn(graphs, dev, no_of_runs)
+        #gnn = load_gnn_explainer(graphs, dev)
         x = np.array([1,3,5])
         w = 0.05
         ax = plt.subplot(111)
@@ -276,9 +281,9 @@ def plot_multiple(graphs, no_of_runs):
         plt.yticks(np.arange(0, 1.1, step=0.1))
         ax.set_xticks(x)
         ax.set_title(f"Standard deviation {dev}")
-        ax.bar(x-2*w, gnn, width=w, color='r', align='center', label='GNNExplainer')
+        #ax.bar(x-2*w, gnn, width=w, color='r', align='center', label='GNNExplainer')
         ax.bar(x-w, pg, width=w, color='b', align='center', label='PGExplainer')
-        ax.bar(x, mod, width=w, color='g', align='center', label='Our GNNExplainer')
+        #ax.bar(x, mod, width=w, color='g', align='center', label='Our GNNExplainer')
         plt.ylim(0, 1.1)
         plt.legend()
         plt.savefig(f"{graphs}/coverage_{dev[-1]}", dpi=1000)

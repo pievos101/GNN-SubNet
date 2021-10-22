@@ -152,10 +152,9 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
     target_labels_all_graphs = []
 
     # Compute the target for each patient ------------------------------------------------------------------------------
-    #for gene in genes:
     for gene in range(int(len(genes)/2)):
         # Set the label to a sample from Bernoulli distribution ------
-        target_labels_all_graphs.append(0)
+        target_labels_all_graphs.append(1)
     
     mi = -1
     sigma = 0.01
@@ -165,7 +164,6 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
     genes[int(graphs_nr/2):,node_indices[0]] = feats[:,0]
     genes[int(graphs_nr/2):,node_indices[1]] = feats[:,1]
     
-    #for gene in genes:
     for gene in range(int(len(genes)/2)):
         # Set the label to a sample from Bernoulli distribution ------
         target_labels_all_graphs.append(1)
@@ -175,4 +173,5 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
     print(f"Number of labels for each class: {Counter(target_labels_all_graphs).values()}")
 
     # "target_labels_all_graphs" should just have length (nodes_per_graph_nr,) and not (nodes_per_graph_nr, 5) ---------
+    print(len(target_labels_all_graphs))
     return genes, target_labels_all_graphs, node_indices

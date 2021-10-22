@@ -20,10 +20,11 @@ from gnn_explainer import GNNExplainer as gnnexp
 from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from gnn_training_utils import check_if_graph_is_connected
+from community_detection import find_communities
 
 from graphcnn import GraphCNN
 
-nodes_per_graph_nr = 30
+nodes_per_graph_nr = 20
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
@@ -31,8 +32,8 @@ edges = list(graph.edges())
 edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
-sigma = 0.1
-no_of_features = 1
+sigma = 0.5
+no_of_features = 2
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
 dataset = convert_to_s2vgraph(dataset)
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
@@ -119,14 +120,19 @@ model.train()
 
 no_of_runs = 20
 lamda = 0.85
+ems = []
 for idx in range(no_of_runs):
-    print('OURS:', idx)
-    exp = GNNExplainer(model, epochs=300)
+    exp = GNNExplainer(model, epochs=600)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_edge_masks = np.reshape(em, (len(em), -1))
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks, delimiter=',', fmt='%.3f')
+    ems.append(gnn_edge_masks.mean(0))
 
+ems = np.array(ems)
 
-#avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.txt")
-#print(avg_mask, coms)
+mean_em = ems.mean(0)
+np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
+avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
+print(avg_mask, coms)
+
