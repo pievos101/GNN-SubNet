@@ -53,7 +53,7 @@ class PGExplainer(torch.nn.Module):
         'bias': 0
     }
 
-    def __init__(self, model, out_channels: int, epochs: int = 50,
+    def __init__(self, model, out_channels: int, epochs: int = 30,
                  lr: float = 0.001, num_hops: Optional[int] = None,
                  task: str = 'node', return_type: str = 'log_prob',
                  log: bool = True, coeffs = {
@@ -296,7 +296,7 @@ class PGExplainer(torch.nn.Module):
                 edge_mask = self.__compute_edge_mask__(
                             out, training=False)
                 
-                em = edge_mask.reshape((100, -1))
+                #em = edge_mask.reshape((100, -1))
                 #for row in em:
                 #    print(row[idx], max(row), min(row), row.mean())
 

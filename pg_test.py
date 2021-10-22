@@ -23,7 +23,7 @@ from community_detection import find_communities
 
 
 
-nodes_per_graph_nr = 20
+nodes_per_graph_nr = 30
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
@@ -32,7 +32,7 @@ edges = list(graph.edges())
 edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
-sigma = 0.1
+sigma = 0.01
 no_of_features = 2
 
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
