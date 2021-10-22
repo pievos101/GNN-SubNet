@@ -138,7 +138,10 @@ class PGExplainer(torch.nn.Module):
     def __create_explainer_input__(self, edge_index, x, node_id=None):
 
         rows, cols = edge_index
+        print(rows)
+        print(cols)
         x_j, x_i = x[rows], x[cols]
+        print(x_j)
         if self.task == 'node':
             x_node = x[node_id].repeat(rows.size(0), 1)
             return torch.cat([x_i, x_j, x_node], 1)
@@ -286,11 +289,17 @@ class PGExplainer(torch.nn.Module):
         :rtype: :class:`Tensor`
         """
         x, edge_index = data.x, data.edge_index
+        #x, edge_index = data.x, data.edge_index
         
         self.explainer_model.eval()
         with torch.no_grad():
             if self.task == "graph":
                 explainer_in = self.__create_explainer_input__(edge_index, z)
+               
+                print(edge_index)
+                print(edge_index.shape)
+                print(z.shape)
+                
                 edge_mask = self.__compute_edge_mask__(
                     self.explainer_model(explainer_in), training=False)
 

@@ -136,6 +136,7 @@ loss = nn.CrossEntropyLoss()(output,labels)
 test_loss = loss
 
 predicted_class_array = np.append(predicted_class_array, predicted_class)
+#print(predicted_class_array)
 true_class_array = np.append(true_class_array, labels)
 
 confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
@@ -233,7 +234,7 @@ z = model(test_graphs, get_embedding=True)
 
 #edge_mask = exp.explain_s2v(test_dataset, z)
 test_graphs = Batch.from_data_list(test_dataset)
-edge_mask = exp.explain(test_graphs, z)
+edge_mask   = exp.explain(test_graphs, z)
 
 em = np.reshape(edge_mask, (len(test_dataset), -1))
 
