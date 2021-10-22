@@ -53,8 +53,9 @@ class PGExplainer(torch.nn.Module):
         'bias': 0
     }
     # epochs=30 default
-    def __init__(self, model, out_channels: int, epochs: int = 15,
-                 lr: float = 0.003, num_hops: Optional[int] = None,
+    # num_hops: Optional[int] = None
+    def __init__(self, model, out_channels: int, epochs: int = 100,
+                 lr: float = 0.003, num_hops: Optional[int] = 3,
                  task: str = 'node', return_type: str = 'log_prob',
                  log: bool = True, coeffs = {
         'edge_size': 0.005,
@@ -153,7 +154,8 @@ class PGExplainer(torch.nn.Module):
             return torch.sigmoid(eps/temperature)
 
         else:
-            return torch.sigmoid(edge_weight.squeeze())
+            #return torch.sigmoid(edge_weight.squeeze())
+            return edge_weight.squeeze()
 
     def __set_masks__(self, edge_mask):
         for module in self.model.modules():
