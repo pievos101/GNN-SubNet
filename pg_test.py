@@ -23,8 +23,8 @@ from community_detection import find_communities
 
 
 
-nodes_per_graph_nr = 30
-graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
+nodes_per_graph_nr = 20
+graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 2)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
 
@@ -42,7 +42,7 @@ dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no
 
 
 print('--------DATASET LOADED-------------')
-train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)
+train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=4442)
 s2v_train_dataset = convert_to_s2vgraph(train_dataset)
 s2v_test_dataset = convert_to_s2vgraph(test_dataset)
 
@@ -255,9 +255,10 @@ test_graphs = s2v_test_dataset
 z = model(test_graphs, get_embedding=True)
 test_graphs = Batch.from_data_list(test_dataset)
 edge_mask = exp.explain(test_graphs, z, edge_idx)
-
+#edge_mask = exp.explain_s2v(test_graphs, z)
 
 em = np.reshape(edge_mask, (len(test_dataset), -1))
+#em = edge_mask
 
 Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)
 np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', em, delimiter=',', fmt='%.3f')

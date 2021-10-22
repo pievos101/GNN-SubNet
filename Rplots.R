@@ -11,8 +11,11 @@ node2 <- Edges[2,xx]
 ids1  <- which((Edges[1,]==node1) | (Edges[1,]==node2) )
 ids2  <- which((Edges[2,]==node1) | (Edges[2,]==node2) )
 
-ES <- EdgeScores[,unique(c(ids1,ids2))]
-EDGE_SCORES[xx] <- mean(apply(ES,2,mean))
+#ES <- EdgeScores[,unique(c(ids1,ids2))]
+ES <- EdgeScores[unique(c(ids1,ids2))]
+
+#EDGE_SCORES[xx] <- mean(apply(ES,2,mean))
+EDGE_SCORES[xx]  <- mean(ES)
 
 }
 
@@ -21,7 +24,7 @@ return(EDGE_SCORES)
 
 ##############################################################
 # For the PGExplainer ########################################
-folder <- "graphs_6_13"
+folder <- "graphs_10_14"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -39,7 +42,9 @@ for(xx in 1:length(files)){
 SCORES <- RES[[1]] #t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 range01        <- function(x){(x-min(x))/(max(x)-min(x))}
-SCORES2 <- t(apply(SCORES,1,range01))
+#SCORES2 <- t(apply(SCORES,1,range01))
+SCORES2 <- t(range01(SCORES))
+
 boxplot(SCORES2, outline=FALSE, boxwex=0.4, 
 	color="white", names=edges, las=2, cex.axis=0.6)
 
