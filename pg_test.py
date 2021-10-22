@@ -32,7 +32,7 @@ edges = list(graph.edges())
 edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
-sigma = 0
+sigma = 0.1
 no_of_features = 2
 
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)

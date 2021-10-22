@@ -21,7 +21,7 @@ return(EDGE_SCORES)
 
 ##############################################################
 # For the PGExplainer ########################################
-folder <- "graphs_3_7"
+folder <- "graphs_1_7"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -36,7 +36,7 @@ for(xx in 1:length(files)){
 	RES[[xx]] <- read.csv(files[xx], header=FALSE)
 
 }
-SCORES <- abs(RES[[1]]) #t(do.call("cbind",RES))
+SCORES <- RES[[1]] #t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 range01        <- function(x){(x-min(x))/(max(x)-min(x))}
 SCORES2 <- t(apply(SCORES,1,range01))
