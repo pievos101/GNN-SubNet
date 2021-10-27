@@ -53,7 +53,7 @@ class PGExplainer(torch.nn.Module):
         'bias': 0
     }
 
-    def __init__(self, model, out_channels: int, epochs: int = 15,
+    def __init__(self, model, out_channels: int, epochs: int = 70,
                  lr: float = 0.001, num_hops: Optional[int] = None,
                  task: str = 'node', return_type: str = 'log_prob',
                  log: bool = True, coeffs = {
@@ -136,8 +136,14 @@ class PGExplainer(torch.nn.Module):
 
     def __create_explainer_input__(self, edge_index, x, node_id=None):
 
+        # x is the embedding
         rows, cols = edge_index
+        print(x.shape)
+        print(rows.shape)
+        #print(cols)
+        #print(rows)
         x_j, x_i = x[rows], x[cols]
+        #print(torch.cat([rows,cols],1))
         if self.task == 'node':
             x_node = x[node_id].repeat(rows.size(0), 1)
             return torch.cat([x_i, x_j, x_node], 1)
@@ -151,7 +157,7 @@ class PGExplainer(torch.nn.Module):
             eps = (bias - (1-bias)) * torch.rand(edge_weight.size()) + (1-bias)
             eps = torch.log(eps) - torch.log(1.0 - eps) + edge_weight
             
-            return torch.sigmoid(eps/temperature)
+            return torch.sigmoid(eps) #torch.sigmoid(eps/temperature)
 
         else:
             return torch.sigmoid(edge_weight)
@@ -160,7 +166,7 @@ class PGExplainer(torch.nn.Module):
         for module in self.model.modules():
             if isinstance(module, MessagePassing):
                 module.__explain__ = True
-                module.__edge_mask__ = edge_mask.sigmoid()
+                module.__edge_mask__ = edge_mask.sigmoid() # Second time sigmoid?
 
     def __loss__(self, mask, log_logits, pred_label):
 
@@ -313,7 +319,7 @@ class PGExplainer(torch.nn.Module):
                 full_edge_mask[hop_mask] = edge_mask.sigmoid()
                 return full_edge_mask
 
-    def train_explainer_s2v(self, data, z, s2v_data, idx,node_idxs=None, batch=None,
+    def train_explainer_s2v(self, data, z, s2v_data, idx, node_idxs=None, batch=None,
                         **kwargs):
         r"""Trains the :obj:`explainer_model` to predict an
         edge mask that is crucial to explain the predictions of
@@ -362,15 +368,15 @@ class PGExplainer(torch.nn.Module):
             #assert (batch is not None) and x.shape[0] == batch.shape[0]
             #assert batch.unique().shape[0] == pred_label.shape[0]
             #batch = batch.squeeze()
-            explainer_in = self.__create_explainer_input__(data[0].edge_index,
-                                                           z).detach()
+    
+            explainer_in = self.__create_explainer_input__(data.edge_index,z).detach()
 
             for e in range(0, self.epochs):
                 optimizer.zero_grad()
                 t = self.__get_temp__(e)
                 edge_mask = self.__compute_edge_mask__(
                     self.explainer_model(explainer_in), t, bias=bias)
-                self.__set_masks__(edge_mask)
+                #self.__set_masks__(edge_mask)# is that needed?
                 out = self.model(s2v_data,
                                  **kwargs)
                 log_logits = self.__to_log_prob__(out)

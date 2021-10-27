@@ -24,7 +24,7 @@ from community_detection import find_communities
 
 
 nodes_per_graph_nr = 20
-graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 2)
+graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
 
@@ -159,7 +159,7 @@ print("Test loss {}".format(test_loss))
 
 model.train()
 
-mutag_model = MUTAG_Classifier(input_dim, n_classes)
+mutag_model = MUTAG_Classifier(input_dim, n_classes) # not used
 opt = torch.optim.Adam(model.parameters(), lr = 0.001)
 scheduler = ReduceLROnPlateau(opt, 'min')
 
@@ -247,17 +247,24 @@ np.savetxt(f'{path}/pg_results/spg_edge_masks.csv', em, delimiter=',', fmt='%.3f
 
 train_graphs = s2v_train_dataset
 z = model(train_graphs, get_embedding=True)
+print (z.shape)
+
 exp = PGExplainer(model, 32, task="graph", log=True)
-exp.train_explainer_s2v(train_dataset, z, train_graphs, edge_idx, None)
+
+#exp.train_explainer_s2v(Batch.from_data_list(train_dataset), z, train_graphs, edge_idx, None)
+exp.train_explainer_s2v(Batch.from_data_list(train_dataset), z, train_graphs, edge_idx, None)
 
 test_graphs = s2v_test_dataset
 #z is node embeddings
-z = model(test_graphs, get_embedding=True)
-test_graphs = Batch.from_data_list(test_dataset)
-edge_mask = exp.explain(test_graphs, z, edge_idx)
+#z = model(test_graphs, get_embedding=True)
+#test_graphs = Batch.from_data_list(test_dataset)
+train_graphs = Batch.from_data_list(train_dataset)
+#edge_mask = exp.explain(test_graphs, z, edge_idx)
+edge_mask = exp.explain(train_graphs, z, edge_idx)
 #edge_mask = exp.explain_s2v(test_graphs, z)
 
-em = np.reshape(edge_mask, (len(test_dataset), -1))
+em = np.reshape(edge_mask, (len(train_dataset), -1))
+#em = np.reshape(edge_mask, (len(test_dataset), -1))
 #em = edge_mask
 
 Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)

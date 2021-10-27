@@ -218,7 +218,7 @@ class GraphCNN(nn.Module):
             hidden_rep.append(h)
         
         if get_embedding:
-            return h
+            return h #h[:,30:31]
 
         score_over_layer = 0
     
