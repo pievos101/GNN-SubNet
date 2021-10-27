@@ -24,7 +24,7 @@ return(EDGE_SCORES)
 
 ##############################################################
 # For the PGExplainer ########################################
-folder <- "graphs_4_19"
+folder <- "graphs_7_10"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
