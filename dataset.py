@@ -22,10 +22,40 @@ from torch_geometric.data.data import Data
 
 from gnn_training_utils import _plain_bfs
 from sklearn.preprocessing import minmax_scale
-from features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data
+from features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data, gen_data_community
 from graph_dataset import GraphDataset
 from s2vgraph import S2VGraph
 from gnn_training_utils import check_if_graph_is_connected
+
+def generate_community(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices, no_of_features):
+    edges = torch.zeros(size=(2,len(graph.edges())), dtype=torch.long)
+    for e, idx in zip(graph.edges(), range(len(graph.edges()))):
+        edges[0][idx] = e[0]
+        edges[1][idx] = e[1]
+    
+    genes, target_labels_all_graphs, node_indices = gen_data_community(graphs_nr, nodes_per_graph_nr, sigma, node_indices, no_of_features)
+    graph = dgl.from_networkx(graph)
+    graphs = []
+    feats = np.zeros(shape = (graphs_nr, nodes_per_graph_nr, no_of_features))
+    for graph_idx in range(graphs_nr):
+        temp_graph = copy.deepcopy(graph)
+        temp_graph.ndata['feat'] = torch.tensor(np.array(genes[graph_idx]))
+        feats[graph_idx] = genes[graph_idx]
+        target = target_labels_all_graphs[graph_idx]
+        graphs.append((temp_graph, torch.tensor(target)))
+
+
+    # Generating the dataset in needed form 
+    data_graphs = []
+    for graph_idx in range(graphs_nr):
+        data_graphs.append(Data(x = torch.transpose(torch.Tensor([feats[graph_idx]]),0,1)[:,0,:],
+                                edge_index = edges, 
+                                y = torch.tensor(target_labels_all_graphs[graph_idx], dtype = torch.long)))
+
+    dataset = GraphDataset(data_graphs)
+    create_files(dataset, node_indices)
+    path = f"graphs_{node_indices[0]}_{node_indices[1]}"
+    return dataset, path
 
 def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices, no_of_features):
     """
@@ -59,7 +89,6 @@ def generate(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices
 
     # Generating the dataset in needed form 
     data_graphs = []
-    print(graphs_nr)
     for graph_idx in range(graphs_nr):
         data_graphs.append(Data(x = torch.transpose(torch.Tensor([feats[graph_idx]]),0,1)[:,0,:],
                                 edge_index = edges, 

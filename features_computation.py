@@ -153,7 +153,8 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
 
     # Compute the target for each patient ------------------------------------------------------------------------------
     for gene in range(int(len(genes)/2)):
-        target_labels_all_graphs.append(0)
+        # Set the label to a sample from Bernoulli distribution ------
+        target_labels_all_graphs.append(1)
     
     mi = -1
     sigma = 0.01
@@ -172,5 +173,57 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
     print(f"Number of labels for each class: {Counter(target_labels_all_graphs).values()}")
 
     # "target_labels_all_graphs" should just have length (nodes_per_graph_nr,) and not (nodes_per_graph_nr, 5) ---------
-    print(len(target_labels_all_graphs))
+    
+    return genes, target_labels_all_graphs, node_indices
+
+
+def gen_data_community(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, no_of_features: int):
+    mi = 0
+    sigma = sigma
+    genes = np.random.normal(mi, sigma, size=(graphs_nr, nodes_per_graph_nr, no_of_features))
+
+    mi = 1
+    sigma = 0.01
+    feats = np.random.normal(mi, sigma, size=(int(graphs_nr/2), len(node_indices), no_of_features))
+    '''
+    # Get edges of graph -----------------------------------------------------------------------------------------------
+    edges = list(graph.edges())
+
+    #Select nodes for label calculation --------------------------------------------------------------------------------
+    edge_idx = np.random.randint(len(edges))
+
+    node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
+    '''
+    
+    for idx, i in zip(node_indices, range(len(node_indices))):
+        genes[:int(graphs_nr/2),idx] = feats[:,i]
+    
+    #Print node indices so we know which 2 nodes we want to look in explanation
+    print("Nodes taken into computatio of the class " + str(node_indices))
+    
+    target_labels_all_graphs = []
+
+    # Compute the target for each patient ------------------------------------------------------------------------------
+    for gene in range(int(len(genes)/2)):
+        
+        target_labels_all_graphs.append(0)
+    
+    mi = -1
+    sigma = 0.01
+    feats = np.random.normal(mi, sigma, size=(int(graphs_nr/2), len(node_indices), no_of_features))
+
+    
+    for idx, i in zip(node_indices, range(len(node_indices))):
+        genes[:int(graphs_nr/2),idx] = feats[:,i]
+    
+    for gene in range(int(len(genes)/2)):
+        
+        target_labels_all_graphs.append(1)
+
+    # Target labels ----------------------------------------------------------------------------------------------------
+    print(f"Number of unique classes: {Counter(target_labels_all_graphs).keys()}")
+    print(f"Number of labels for each class: {Counter(target_labels_all_graphs).values()}")
+
+    # "target_labels_all_graphs" should just have length (nodes_per_graph_nr,) and not (nodes_per_graph_nr, 5) ---------
+    
     return genes, target_labels_all_graphs, node_indices
