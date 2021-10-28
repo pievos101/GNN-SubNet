@@ -69,8 +69,12 @@ class GNNExplainer(torch.nn.Module):
     def __set_masks__(self, x, edge_index, init="normal"):
         (N, F), E = x.size(), edge_index.size(1)
 
+        #print(N)
+        #print(F)
+
         std = 0.1
-        self.node_feat_mask = torch.nn.Parameter(torch.randn(F) * 0.1)
+        #self.node_feat_mask = torch.nn.Parameter(torch.randn(F) * 0.1)
+        self.node_feat_mask = torch.nn.Parameter(torch.randn(N) * 0.1)
 
         std = torch.nn.init.calculate_gain('relu') * sqrt(2.0 / (2 * N))
         self.edge_mask = torch.nn.Parameter(torch.randn(E) * std)
@@ -444,8 +448,17 @@ class GNNExplainer(torch.nn.Module):
             for dd in ids: 
                 data = dataset[dd]
                 data_copy = copy(data)
-                h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
+                #h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
+                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(20,1))
+                h = torch.mul(data.node_features, feat)
+                #print(feat)
+                #print(data.node_features)
+                #print(h)
+                #print(data.node_features)
+                #print(data.node_features)
                 data_copy.node_features = h
+                #rows, cols = data.edge_mat
+                #print(rows)
                 #print(self.edge_mask.detach().sigmoid())
                 out = self.model([data_copy])
                 log_logits = self.__to_log_prob__(out)
@@ -457,8 +470,9 @@ class GNNExplainer(torch.nn.Module):
             #print(loss_xx)
             loss_xx.backward()
             optimizer.step()
-            
-        return self.edge_mask.detach().sigmoid()
+         
+        print(self.node_feat_mask.view(-1,1).detach())     
+        return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
 
 
 

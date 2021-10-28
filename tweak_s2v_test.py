@@ -33,7 +33,7 @@ edge_idx = np.random.randint(len(edges))
 
 node_indices = [edges[edge_idx][0], edges[edge_idx][1]]
 sigma = 0.5
-no_of_features = 2
+no_of_features = 1
 dataset, path = generate(500, nodes_per_graph_nr, sigma, graph, node_indices, no_of_features)
 dataset = convert_to_s2vgraph(dataset)
 train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=42)

@@ -61,7 +61,7 @@ barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
 
 # R plots
 # For our modified GNNexplainer #############################
-folder <- "graphs_5_14"
+folder <- "graphs_1_6"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -80,7 +80,7 @@ for(xx in 1:length(files)){
 SCORES <- t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
-	color="white", names=edges, las=2)
+	color="white", names=0:19, las=2)
 
 
 RANK <- t(apply(SCORES, 1, function(x){rank(x)}))
