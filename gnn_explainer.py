@@ -77,6 +77,7 @@ class GNNExplainer(torch.nn.Module):
 
         for module in self.model.modules():
             if isinstance(module, MessagePassing):
+                print("Module is Instance of MessagePassing")
                 module.__explain__ = True
                 module.__edge_mask__ = self.edge_mask
 
@@ -175,6 +176,10 @@ class GNNExplainer(torch.nn.Module):
 
         optimizer = torch.optim.Adam([self.node_feat_mask, self.edge_mask],
                                      lr=self.lr)
+
+        #optimizer = torch.optim.Adam([self.edge_mask],
+        #                             lr=self.lr)                        
+                        
 
         if self.log:  # pragma: no cover
             pbar = tqdm(total=self.epochs)
@@ -367,7 +372,9 @@ class GNNExplainer(torch.nn.Module):
         self.to(x.device)
                                   
         optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
-        
+       # optimizer = torch.optim.Adam([self.edge_mask],
+       #                              lr=self.lr)                        
+                        
         # all nodes belong to same graph
         batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
         
@@ -383,6 +390,7 @@ class GNNExplainer(torch.nn.Module):
                 data_copy = copy(data)
                 h = data.x * self.node_feat_mask.view(1, -1).sigmoid()
                 data_copy.x = h
+                #print(self.edge_mask.detach().sigmoid())
                 out = self.model(data_copy, batch=batch)
                 log_logits = self.__to_log_prob__(out)
                 loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
@@ -419,6 +427,10 @@ class GNNExplainer(torch.nn.Module):
                                   
         optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
         
+        #optimizer = torch.optim.Adam([self.edge_mask],
+        #                             lr=self.lr)                        
+                        
+
         # all nodes belong to same graph
         batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
         
@@ -434,12 +446,14 @@ class GNNExplainer(torch.nn.Module):
                 data_copy = copy(data)
                 h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
                 data_copy.node_features = h
+                #print(self.edge_mask.detach().sigmoid())
                 out = self.model([data_copy])
                 log_logits = self.__to_log_prob__(out)
                 loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
                 loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
                 #loss_xx = loss_xx + loss_hit + abs(LOGITS2[dd][PRED[dd]] - (-log_logits[0, PRED[dd][0]]))
-                loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
+                #loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
+                loss_xx = loss_xx + loss_hit 
             #print(loss_xx)
             loss_xx.backward()
             optimizer.step()

@@ -247,7 +247,7 @@ np.savetxt(f'{path}/pg_results/spg_edge_masks.csv', em, delimiter=',', fmt='%.3f
 
 train_graphs = s2v_train_dataset
 z = model(train_graphs, get_embedding=True)
-print (z.shape)
+#print (z.shape)
 
 exp = PGExplainer(model, 32, task="graph", log=True)
 

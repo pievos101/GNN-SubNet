@@ -24,7 +24,7 @@ return(EDGE_SCORES)
 
 ##############################################################
 # For the PGExplainer ########################################
-folder <- "graphs_3_6"
+folder <- "graphs_0_1"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -59,19 +59,15 @@ barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
 #	color="white", names=edges, las=2)
 
 
-
-
-
-
 # R plots
 # For our modified GNNexplainer #############################
-folder <- "graphs_3_11"
+folder <- "graphs_5_14"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
-edges  <- read.table(path)
+edges_raw  <- read.table(path)
 
-edges  <- apply(edges,2,function(x){paste(x[1],x[2],sep="-")})
+edges  <- apply(edges_raw,2,function(x){paste(x[1],x[2],sep="-")})
 
-path2  <- paste("./",folder,"/0.1/modified_gnn/", sep="")
+path2  <- paste("./",folder,"/0.5/modified_gnn/", sep="")
 files  <- list.files(path2, full.names = TRUE)
 
 RES <- vector("list", length(files))
@@ -90,3 +86,8 @@ boxplot(SCORES, outline=FALSE, boxwex=0.4,
 RANK <- t(apply(SCORES, 1, function(x){rank(x)}))
 boxplot(RANK, outline=FALSE, boxwex=0.4, 
 	color="white", names=edges, las=2)
+
+newScores <- PG_CalcEdgeImportance(RANK, edges_raw)
+names(newScores) <- edges
+
+barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)

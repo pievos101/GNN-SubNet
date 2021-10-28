@@ -118,11 +118,12 @@ print("Test loss {}".format(test_loss))
 
 model.train()
 
-no_of_runs = 20
+no_of_runs = 10
 lamda = 0.85
 ems = []
 for idx in range(no_of_runs):
-    exp = GNNExplainer(model, epochs=600)
+    print(idx)
+    exp = GNNExplainer(model, epochs=300)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_edge_masks = np.reshape(em, (len(em), -1))

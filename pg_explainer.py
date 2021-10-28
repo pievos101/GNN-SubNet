@@ -53,7 +53,7 @@ class PGExplainer(torch.nn.Module):
         'bias': 0
     }
 
-    def __init__(self, model, out_channels: int, epochs: int = 70,
+    def __init__(self, model, out_channels: int, epochs: int = 100,
                  lr: float = 0.001, num_hops: Optional[int] = None,
                  task: str = 'node', return_type: str = 'log_prob',
                  log: bool = True, coeffs = {
@@ -87,7 +87,7 @@ class PGExplainer(torch.nn.Module):
     def __clear_masks__(self):
         for module in self.model.modules():
             if isinstance(module, MessagePassing):
-                module.__explain__ = False
+                module.__explain__   = False
                 module.__edge_mask__ = None
 
     def __to_log_prob__(self, x: torch.Tensor) -> torch.Tensor:
@@ -140,9 +140,10 @@ class PGExplainer(torch.nn.Module):
         rows, cols = edge_index
         print(x.shape)
         print(rows.shape)
+        print(cols.shape)
         #print(cols)
         #print(rows)
-        x_j, x_i = x[rows], x[cols]
+        x_j, x_i = x[rows], x[cols] # it will take rows
         #print(torch.cat([rows,cols],1))
         if self.task == 'node':
             x_node = x[node_id].repeat(rows.size(0), 1)
@@ -152,25 +153,36 @@ class PGExplainer(torch.nn.Module):
 
     def __compute_edge_mask__(self, edge_weight, temperature=1.0, bias=0.0,
                               training=True):
+
+        #print('EdgeSize')
+        #print(edge_weight.shape)
         if training:  # noise is added to edge_weight.
             bias = bias + 0.0001
             eps = (bias - (1-bias)) * torch.rand(edge_weight.size()) + (1-bias)
             eps = torch.log(eps) - torch.log(1.0 - eps) + edge_weight
             
-            return torch.sigmoid(eps) #torch.sigmoid(eps/temperature)
+            return torch.sigmoid(eps/temperature)
 
         else:
             return torch.sigmoid(edge_weight)
 
     def __set_masks__(self, edge_mask):
+
+        #std = torch.nn.init.calculate_gain('relu') * sqrt(2.0 / (2 * N))
+        #self.edge_mask = torch.nn.Parameter(torch.randn(E) * std)
+
+        #print(edge_mask)
         for module in self.model.modules():
             if isinstance(module, MessagePassing):
-                module.__explain__ = True
-                module.__edge_mask__ = edge_mask.sigmoid() # Second time sigmoid?
+                print("Module is Instance of MessagePassing")
+                module.__explain__   = True
+                module.__edge_mask__ = edge_mask.sigmoid() 
+
 
     def __loss__(self, mask, log_logits, pred_label):
 
         cross_ent_loss = cross_entropy(log_logits, pred_label)
+        #print(log_logits)
 
         # Regularization losses
         size_loss = mask.sum() * self.coeffs['edge_size']
@@ -293,6 +305,9 @@ class PGExplainer(torch.nn.Module):
         """
         x, edge_index = data.x, data.edge_index
         
+        #print("ExplainerEdge")
+        #print(edge_index.shape)
+
         self.explainer_model.eval()
         with torch.no_grad():
             if self.task == "graph":
@@ -374,11 +389,14 @@ class PGExplainer(torch.nn.Module):
             for e in range(0, self.epochs):
                 optimizer.zero_grad()
                 t = self.__get_temp__(e)
+
+                #z = self.model(s2v_data, get_embedding=True)
+                #explainer_in = self.__create_explainer_input__(data.edge_index,z).detach()
+
                 edge_mask = self.__compute_edge_mask__(
                     self.explainer_model(explainer_in), t, bias=bias)
-                #self.__set_masks__(edge_mask)# is that needed?
-                out = self.model(s2v_data,
-                                 **kwargs)
+                self.__set_masks__(edge_mask)# is that needed-YES
+                out = self.model(s2v_data,**kwargs)
                 log_logits = self.__to_log_prob__(out)
                 loss = self.__loss__(edge_mask, log_logits, pred_label)
                 loss.backward()
