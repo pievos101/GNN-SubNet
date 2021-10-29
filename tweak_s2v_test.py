@@ -119,11 +119,14 @@ print("Test loss {}".format(test_loss))
 
 model.train()
 
+print("")
+print("Run the Explainer ...")
+
 no_of_runs = 3
 lamda = 0.85
 ems = []
 for idx in range(no_of_runs):
-    print(idx)
+    print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
     exp = GNNExplainer(model, epochs=300)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
@@ -131,11 +134,16 @@ for idx in range(no_of_runs):
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks, delimiter=',', fmt='%.3f')
     gnn_edge_masks = calc_edge_importance(gnn_feature_masks,dataset[0].edge_mat)
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks, delimiter=',', fmt='%.3f')
-    #ems.append(gnn_feature_masks.mean(0))
+    ems.append(gnn_edge_masks.detach().numpy())
+    #ems.append(gnn_edge_masks.detach().mean(0))
+    #print(ems)
 
-#ems = np.array(ems)
+#print(ems)
+ems = np.array(ems)
+mean_em = ems.mean(0)
 
-#mean_em = ems.mean(0)
+#print(mean_em)
+
 #np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
 #np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
 #avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")

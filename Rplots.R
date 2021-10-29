@@ -61,7 +61,7 @@ barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
 
 # R plots
 # For our modified GNNexplainer #############################
-folder <- "graphs_3_4"
+folder <- "graphs_5_18"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -71,7 +71,10 @@ path2  <- paste("./",folder,"/0.1/modified_gnn/", sep="")
 files  <- list.files(path2, full.names = TRUE)
 
 
+#####################
 # Node Importance
+#####################
+
 filesX  <- files[grep("feature_mask", files)]
 RES <- vector("list", length(filesX))
 for(xx in 1:length(filesX)){
@@ -86,7 +89,10 @@ boxplot(SCORES, outline=FALSE, boxwex=0.4,
 	color="white", names=0:19, las=2, xlab="Nodes", 
 	ylab="Node Importance", col="cadetblue")
 
+#####################
 # Edge Importance
+#####################
+
 filesX  <- files[grep("edge_mask", files)]
 RES <- vector("list", length(filesX))
 for(xx in 1:length(filesX)){
@@ -99,8 +105,7 @@ SCORES <- t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
 	color="white", names=edges, las=2, xlab="Edges", 
-	ylab="Edge Importance", col="cadetblue")
-
+	ylab="Edge Importance", col="coral3")
 
 
 #RANK <- t(apply(SCORES, 1, function(x){rank(x)}))
