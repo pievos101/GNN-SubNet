@@ -449,7 +449,7 @@ class GNNExplainer(torch.nn.Module):
                 data = dataset[dd]
                 data_copy = copy(data)
                 #h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
-                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(20,1))
+                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(20,1)) #@FIX THE 20 to GENERAL SOLUTION
                 h = torch.mul(data.node_features, feat)
                 #print(feat)
                 #print(data.node_features)
