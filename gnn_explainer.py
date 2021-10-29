@@ -428,7 +428,11 @@ class GNNExplainer(torch.nn.Module):
 
         self.__set_masks__(dataset[0].node_features,dataset[0].edge_mat)
         self.to(x.device)
-                                  
+        
+        #print("Thats the number of nodes")
+        #print(dataset[0].node_features.size()[0])
+        n_nodes = dataset[0].node_features.size()[0]
+
         optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
         
         #optimizer = torch.optim.Adam([self.edge_mask],
@@ -449,7 +453,7 @@ class GNNExplainer(torch.nn.Module):
                 data = dataset[dd]
                 data_copy = copy(data)
                 #h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
-                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(20,1)) #@FIX THE 20 to GENERAL SOLUTION
+                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(n_nodes,1)) #@FIX THE 20 to GENERAL SOLUTION
                 h = torch.mul(data.node_features, feat)
                 #print(feat)
                 #print(data.node_features)
