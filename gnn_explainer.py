@@ -471,7 +471,7 @@ class GNNExplainer(torch.nn.Module):
             loss_xx.backward()
             optimizer.step()
          
-        print(self.node_feat_mask.view(-1,1).detach())     
+        #print(self.node_feat_mask.view(-1,1).detach())     
         return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
 
 

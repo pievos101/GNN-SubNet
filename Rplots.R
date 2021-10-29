@@ -61,13 +61,13 @@ barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
 
 # R plots
 # For our modified GNNexplainer #############################
-folder <- "graphs_1_6"
+folder <- "graphs_0_3"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
 edges  <- apply(edges_raw,2,function(x){paste(x[1],x[2],sep="-")})
 
-path2  <- paste("./",folder,"/0.5/modified_gnn/", sep="")
+path2  <- paste("./",folder,"/0.1/modified_gnn/", sep="")
 files  <- list.files(path2, full.names = TRUE)
 
 RES <- vector("list", length(files))
@@ -81,6 +81,7 @@ SCORES <- t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
 	color="white", names=0:19, las=2)
+
 
 
 RANK <- t(apply(SCORES, 1, function(x){rank(x)}))

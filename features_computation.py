@@ -131,7 +131,7 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
     genes = np.random.normal(mi, sigma, size=(graphs_nr, nodes_per_graph_nr, no_of_features))
 
     mi = 1
-    sigma = 0.01
+    sigma = sigma #0.01
     feats = np.random.normal(mi, sigma, size=(int(graphs_nr/2), 2, no_of_features))
     '''
     # Get edges of graph -----------------------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ def gen_syn_data(graphs_nr: int, nodes_per_graph_nr: int, sigma, node_indices, n
         target_labels_all_graphs.append(0)
     
     mi = -1
-    sigma = 0.01
+    sigma = sigma #0.01
     feats = np.random.normal(mi, sigma, size=(int(graphs_nr/2), 2, no_of_features))
 
     
