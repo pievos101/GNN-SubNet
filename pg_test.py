@@ -271,6 +271,7 @@ Path(f"{path}/pg_results").mkdir(parents=True, exist_ok=True)
 np.savetxt(f'{path}/pg_results/pg_edge_masks.csv', em, delimiter=',', fmt='%.3f')
 
 mean_em = em.mean(0)
+print(mean_em)
 np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
 avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
 print(avg_mask, coms)
