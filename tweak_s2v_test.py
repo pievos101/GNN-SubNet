@@ -21,6 +21,7 @@ from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from gnn_training_utils import check_if_graph_is_connected
 from community_detection import find_communities
+from Edge_Importance import calc_edge_importance
 
 from graphcnn import GraphCNN
 
@@ -118,7 +119,7 @@ print("Test loss {}".format(test_loss))
 
 model.train()
 
-no_of_runs = 10
+no_of_runs = 3
 lamda = 0.85
 ems = []
 for idx in range(no_of_runs):
@@ -126,14 +127,17 @@ for idx in range(no_of_runs):
     exp = GNNExplainer(model, epochs=300)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
-    gnn_edge_masks = np.reshape(em, (len(em), -1))
+    gnn_feature_masks = np.reshape(em, (len(em), -1))
+    np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks, delimiter=',', fmt='%.3f')
+    gnn_edge_masks = calc_edge_importance(gnn_feature_masks,dataset[0].edge_mat)
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks, delimiter=',', fmt='%.3f')
-    ems.append(gnn_edge_masks.mean(0))
+    #ems.append(gnn_feature_masks.mean(0))
 
-ems = np.array(ems)
+#ems = np.array(ems)
 
-mean_em = ems.mean(0)
-np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
-avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
-print(avg_mask, coms)
+#mean_em = ems.mean(0)
+#np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
+#np.savetxt(f"{path}/edge_masks.csv", mean_em.T, delimiter=',', fmt='%.5f')
+#avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
+#print(avg_mask, coms)
 

@@ -61,7 +61,7 @@ barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
 
 # R plots
 # For our modified GNNexplainer #############################
-folder <- "graphs_0_3"
+folder <- "graphs_3_4"
 path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
 edges_raw  <- read.table(path)
 
@@ -70,25 +70,44 @@ edges  <- apply(edges_raw,2,function(x){paste(x[1],x[2],sep="-")})
 path2  <- paste("./",folder,"/0.1/modified_gnn/", sep="")
 files  <- list.files(path2, full.names = TRUE)
 
-RES <- vector("list", length(files))
-for(xx in 1:length(files)){
 
-	RES[[xx]] <- read.csv(files[xx], header=FALSE)
+# Node Importance
+filesX  <- files[grep("feature_mask", files)]
+RES <- vector("list", length(filesX))
+for(xx in 1:length(filesX)){
+
+	RES[[xx]] <- read.csv(filesX[xx], header=FALSE)
 
 }
 
 SCORES <- t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
-	color="white", names=0:19, las=2)
+	color="white", names=0:19, las=2, xlab="Nodes", 
+	ylab="Node Importance", col="cadetblue")
+
+# Edge Importance
+filesX  <- files[grep("edge_mask", files)]
+RES <- vector("list", length(filesX))
+for(xx in 1:length(filesX)){
+
+	RES[[xx]] <- read.csv(filesX[xx], header=FALSE)
+
+}
+
+SCORES <- t(do.call("cbind",RES))
+#boxplot(SCORES, names=edges)
+boxplot(SCORES, outline=FALSE, boxwex=0.4, 
+	color="white", names=edges, las=2, xlab="Edges", 
+	ylab="Edge Importance", col="cadetblue")
 
 
 
-RANK <- t(apply(SCORES, 1, function(x){rank(x)}))
-boxplot(RANK, outline=FALSE, boxwex=0.4, 
-	color="white", names=edges, las=2)
+#RANK <- t(apply(SCORES, 1, function(x){rank(x)}))
+#boxplot(RANK, outline=FALSE, boxwex=0.4, 
+#	color="white", names=edges, las=2)
 
-newScores <- PG_CalcEdgeImportance(RANK, edges_raw)
-names(newScores) <- edges
+#newScores <- PG_CalcEdgeImportance(RANK, edges_raw)
+#names(newScores) <- edges
 
-barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
+#barplot(sort(newScores, decreasing=TRUE), las=2, cex.names=0.6)
