@@ -25,7 +25,7 @@ from Edge_Importance import calc_edge_importance
 
 from graphcnn import GraphCNN
 
-nodes_per_graph_nr = 20
+nodes_per_graph_nr = 30
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
 # Get edges of graph -----------------------------------------------------------------------------------------------
 edges = list(graph.edges())
@@ -122,7 +122,7 @@ model.train()
 print("")
 print("Run the Explainer ...")
 
-no_of_runs = 3
+no_of_runs = 10
 lamda = 0.85
 ems = []
 for idx in range(no_of_runs):

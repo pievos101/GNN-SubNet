@@ -28,7 +28,7 @@ for(xx in 1:length(filesX)){
 SCORES <- t(do.call("cbind",RES))
 #boxplot(SCORES, names=edges)
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
-	color="white", names=0:19, las=2, xlab="Nodes", 
+	color="white", names=0:(dim(SCORES)[2]-1), las=2, xlab="Nodes", 
 	ylab="Node Importance", col="cadetblue")
 
 #####################
