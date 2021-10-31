@@ -123,7 +123,7 @@ print("")
 print("Run the Explainer ...")
 
 no_of_runs = 3
-lamda = 0.85
+lamda = 0.85 # not used anymore
 ems = []
 for idx in range(no_of_runs):
     print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 

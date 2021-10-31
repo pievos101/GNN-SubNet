@@ -66,15 +66,21 @@ class GNNExplainer(torch.nn.Module):
         self.return_type = return_type
         self.log = log
 
-    def __set_masks__(self, x, edge_index, init="normal"):
+    def __set_masks__(self, x, edge_index, init="normal", type=2):
         (N, F), E = x.size(), edge_index.size(1)
 
         #print(N)
-        #print(F)
+        #print(F)    
 
         std = 0.1
-        #self.node_feat_mask = torch.nn.Parameter(torch.randn(F) * 0.1)
-        self.node_feat_mask = torch.nn.Parameter(torch.randn(N) * 0.1)
+        if type == 1: # mask the features
+            #self.node_feat_mask = torch.nn.Parameter(torch.randn(F) * 0.1)
+            self.node_feat_mask = torch.nn.Parameter(torch.randn(1, F) * std)
+
+        if type == 2: # mask the nodes
+            #self.node_feat_mask = torch.nn.Parameter(torch.randn(N) * 0.1)
+            self.node_feat_mask = torch.nn.Parameter(torch.randn(N, 1) * std)
+        
 
         std = torch.nn.init.calculate_gain('relu') * sqrt(2.0 / (2 * N))
         self.edge_mask = torch.nn.Parameter(torch.randn(E) * std)
@@ -452,9 +458,10 @@ class GNNExplainer(torch.nn.Module):
             for dd in ids: 
                 data = dataset[dd]
                 data_copy = copy(data)
+                h = data.node_features * self.node_feat_mask.sigmoid()
                 #h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
-                feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(n_nodes,1)) #@FIX THE 20 to GENERAL SOLUTION
-                h = torch.mul(data.node_features, feat)
+                #feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(n_nodes,1)) #@FIX THE 20 to GENERAL SOLUTION
+                #h = torch.mul(data.node_features, feat)
                 #print(feat)
                 #print(data.node_features)
                 #print(h)
