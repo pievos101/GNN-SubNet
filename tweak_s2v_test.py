@@ -131,20 +131,13 @@ for idx in range(no_of_runs):
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_feature_masks = np.reshape(em, (len(em), -1))
-    #print(gnn_feature_masks.sigmoid())
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     gnn_edge_masks = calc_edge_importance(gnn_feature_masks,dataset[0].edge_mat)
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
-    ems.append(gnn_edge_masks.detach().numpy())
-    #ems.append(gnn_edge_masks.detach().mean(0))
-    #print(ems)
-
-#print(ems)
+    ems.append(gnn_edge_masks.sigmoid().numpy())
+    
 ems = np.array(ems)
 mean_em = ems.mean(0)
-
-#print(mean_em)
-#print()
 
 np.savetxt(f"{path}/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
 np.savetxt(f"{path}/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
