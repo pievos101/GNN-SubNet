@@ -140,7 +140,6 @@ ems = np.array(ems)
 mean_em = ems.mean(0)
 
 np.savetxt(f"{path}/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
-np.savetxt(f"{path}/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
 avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
 print(avg_mask, coms)
 

@@ -24,11 +24,12 @@ from graphcnn import GraphCNN
 
 from community_detection import find_communities
 
-#dataset2, col_pairs, row_pairs = load_KIRC_dataset("KIRC/KIDNEY_PPI.txt", 
-#                                ["KIRC/KIDNEY_Methy_FEATURES.txt", "KIRC/KIDNEY_mRNA_FEATURES.txt"], "KIRC/KIDNEY_SURVIVAL.txt")
+dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
+                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
+                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
-dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
-                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
+#dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
+#                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
 
 print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 count = 0
@@ -183,18 +184,50 @@ model.train()
 
 # add tweak explainer in comment
 
-train_graphs = s2v_train_dataset
-print(len(train_graphs))
-z = model(train_graphs, get_embedding=True)
-exp = PGExplainer(model, 32, task="graph", log=True)
-exp.train_explainer_s2v(train_dataset, z, train_graphs, None)
-test_graphs = s2v_test_dataset
-z = model(test_graphs, get_embedding=True)
-edge_mask = exp.explain_s2v(test_dataset, z)
-print(edge_mask.shape, train_dataset[0].edge_index.shape)
+###############################################################
+# Thats the PGExplainer Call ##################################
+###############################################################
+#train_graphs = s2v_train_dataset
+#print(len(train_graphs))
+#z = model(train_graphs, get_embedding=True)
+#exp = PGExplainer(model, 32, task="graph", log=True)
+#exp.train_explainer_s2v(train_dataset, z, train_graphs, None)
+#test_graphs = s2v_test_dataset
+#z = model(test_graphs, get_embedding=True)
+#edge_mask = exp.explain_s2v(test_dataset, z)
+#print(edge_mask.shape, train_dataset[0].edge_index.shape)
 
 #em = np.reshape(edge_mask, (len(s2v_test_dataset), -1))
-np.savetxt('KIRC/edge_masks.txt', edge_mask, fmt='%.3f')
+#np.savetxt('KIRC/edge_masks.txt', edge_mask, fmt='%.3f')
 
-avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.txt")
+#avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.txt")
+#print(avg_mask, coms)
+###############################################################
+###############################################################
+###############################################################
+
+print("")
+print("Run the Explainer ...")
+
+no_of_runs = 3
+lamda = 0.85 # not used anymore
+ems = []
+for idx in range(no_of_runs):
+    print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
+    exp = GNNExplainer(model, epochs=300)
+    em = exp.explain_graph_modified_s2v(dataset, lamda)
+    #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
+    gnn_feature_masks = np.reshape(em, (len(em), -1))
+    np.savetxt('KIRC/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    gnn_edge_masks = calc_edge_importance(gnn_feature_masks,dataset[0].edge_mat)
+    np.savetxt('KIRC/gnn_edge_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    ems.append(gnn_edge_masks.sigmoid().numpy())
+    
+ems = np.array(ems)
+mean_em = ems.mean(0)
+
+np.savetxt("KIRC/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
+avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
 print(avg_mask, coms)
