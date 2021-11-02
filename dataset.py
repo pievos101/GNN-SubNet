@@ -346,6 +346,9 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
         graphs.append(Data(x=torch.tensor(temp[idx]).float(),
                         edge_index=torch.tensor(edge_index, dtype=torch.long),
                         y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
+        #graphs.append(Data(node_features=torch.tensor(temp[idx]).float(),
+        #                edge_mat=torch.tensor(edge_index, dtype=torch.long),
+        #                y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
     
     return graphs, col_pairs, row_pairs
 
