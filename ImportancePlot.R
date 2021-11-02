@@ -3,12 +3,12 @@ ImportancePlot <- function(folder){
 # R plots
 # For our modified GNNexplainer #############################
 #folder <- "graphs_5_18"
-path   <- paste(folder,"/dataset/graph0_edges.txt", sep="")
+path       <- paste(folder,"/edge_index.txt", sep="")
 edges_raw  <- read.table(path)
 
 edges  <- apply(edges_raw,2,function(x){paste(x[1],x[2],sep="-")})
 
-path2  <- paste("./",folder,"/0.1/modified_gnn/", sep="")
+path2  <- paste(folder,"", sep="")
 files  <- list.files(path2, full.names = TRUE)
 
 
@@ -16,7 +16,7 @@ files  <- list.files(path2, full.names = TRUE)
 # Node Importance
 #####################
 par(mfrow=c(2,1))
-filesX  <- files[grep("feature_mask", files)]
+filesX  <- files[grep("gnn_feature_mask", files)]
 RES <- vector("list", length(filesX))
 for(xx in 1:length(filesX)){
 
@@ -34,7 +34,7 @@ boxplot(SCORES, outline=FALSE, boxwex=0.4,
 # Edge Importance
 #####################
 
-filesX  <- files[grep("edge_mask", files)]
+filesX  <- files[grep("gnn_edge_mask", files)]
 RES <- vector("list", length(filesX))
 for(xx in 1:length(filesX)){
 

@@ -234,4 +234,4 @@ mean_em = ems.mean(0)
 
 np.savetxt("KIRC/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
 avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.csv")
-print(avg_mask, coms)
+#print(avg_mask, coms)
