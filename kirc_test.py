@@ -218,13 +218,17 @@ model.train()
 ###############################################################
 ###############################################################
 
+
+# Run the Explainer
+############################################
+
 print("")
 print("Run the Explainer ...")
 
-no_of_runs = 3
+no_of_runs = 10
 lamda = 0.8 # not used anymore
 ems = []
-#@FIXME set output to the location of the input data
+
 for idx in range(no_of_runs):
     print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
     exp = GNNExplainer(model, epochs=300)
@@ -241,6 +245,22 @@ for idx in range(no_of_runs):
 ems = np.array(ems)
 mean_em = ems.mean(0)
 
+# Save Edge Masks
 np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
-avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.csv')
 #print(avg_mask, coms)
+
+###############################################
+# Perform Community Detection
+###############################################
+
+avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.csv')
+
+np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+
+f = open(f'{LOC}/communities.txt', "a")
+for idx in range(len(avg_mask)):
+    s_com = ','.join(str(e) for e in coms[idx])
+    f.write(s_com + '\n')
+
+f.close()
+ 
