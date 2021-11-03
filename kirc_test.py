@@ -11,6 +11,7 @@ from torch_geometric.data import DataLoader, Batch
 from pathlib import Path
 import copy
 from tqdm import tqdm
+import os
 
 from torch_geometric.data.data import Data
 
@@ -31,8 +32,6 @@ LOC = "/home/bastian/LinkedOmics/KIRC"
 dataset, col_pairs, row_pairs = load_KIRC_dataset(f'{LOC}/KIDNEY_PPI.txt', 
                                 [f'{LOC}/KIDNEY_Methy_FEATURES.txt', f'{LOC}/KIDNEY_mRNA_FEATURES.txt'], 
                                  f'{LOC}/KIDNEY_SURVIVAL.txt')
-
-
 
 #dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
 #                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
@@ -256,6 +255,11 @@ np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
 avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.csv')
 
 np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+
+filePath = f'{LOC}/communities.txt'
+
+if os.path.exists(filePath):
+    os.remove(filePath)
 
 f = open(f'{LOC}/communities.txt', "a")
 for idx in range(len(avg_mask)):
