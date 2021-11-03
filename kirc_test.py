@@ -22,7 +22,6 @@ from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from graphcnn import GraphCNN
 
-
 from community_detection import find_communities
 from Edge_Importance import calc_edge_importance
 
@@ -220,10 +219,11 @@ model.train()
 ############################################
 
 print("")
-print("Run the Explainer ...")
+print("------- Run the Explainer -------")
+print("")
 
 no_of_runs = 10
-lamda = 0.8 # not used anymore
+lamda = 0.8 # not used!
 ems = []
 
 for idx in range(no_of_runs):
