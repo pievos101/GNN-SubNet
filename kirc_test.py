@@ -26,9 +26,17 @@ from community_detection import find_communities
 from Edge_Importance import calc_edge_importance
 
 
-dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
-                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
-                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+LOC = "/home/bastian/LinkedOmics/KIRC"
+
+dataset, col_pairs, row_pairs = load_KIRC_dataset(f'{LOC}/KIDNEY_PPI.txt', 
+                                [f'{LOC}/KIDNEY_Methy_FEATURES.txt', f'{LOC}/KIDNEY_mRNA_FEATURES.txt'], 
+                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
+
+
+
+#dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
+#                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
+#                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
 #dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
 #                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
@@ -216,22 +224,23 @@ print("Run the Explainer ...")
 no_of_runs = 3
 lamda = 0.8 # not used anymore
 ems = []
+#@FIXME set output to the location of the input data
 for idx in range(no_of_runs):
     print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
     exp = GNNExplainer(model, epochs=300)
     em = exp.explain_graph_modified_s2v(s2v_test_dataset, lamda)
     #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_feature_masks = np.reshape(em, (len(em), -1))
-    np.savetxt(f'KIRC/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    np.savetxt(f'{LOC}/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_index)
-    np.savetxt(f'KIRC/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    np.savetxt(f'{LOC}/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
     #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
     ems.append(gnn_edge_masks.sigmoid().numpy())
     
 ems = np.array(ems)
 mean_em = ems.mean(0)
 
-np.savetxt("KIRC/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
-avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.csv")
+np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
+avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.csv')
 #print(avg_mask, coms)

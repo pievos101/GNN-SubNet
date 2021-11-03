@@ -281,6 +281,7 @@ def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
     #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
 
     last_idx = edge_path.rindex('/')
+    
     np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
 
     s = list(copy.copy(edge_index[0]))
