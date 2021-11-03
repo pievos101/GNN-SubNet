@@ -225,7 +225,7 @@ for idx in range(no_of_runs):
     np.savetxt(f'KIRC/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_index)
-    np.savetxt(f'KIRC/gnn_edge_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+    np.savetxt(f'KIRC/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
     #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
     ems.append(gnn_edge_masks.sigmoid().numpy())
     
