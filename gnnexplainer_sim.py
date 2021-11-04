@@ -15,9 +15,7 @@ from tqdm import tqdm
 
 from gnn_training_utils import pass_data_iteratively
 from dataset import generate, save_results, load_syn_dataset, convert_to_s2vgraph
-from gnn import MUTAG_Classifier
 from gnn_explainer import GNNExplainer as gnnexp
-from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from gnn_training_utils import check_if_graph_is_connected
 from community_detection import find_communities

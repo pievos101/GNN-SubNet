@@ -17,8 +17,6 @@ from torch_geometric.data.data import Data
 
 from gnn_training_utils import check_if_graph_is_connected, pass_data_iteratively
 from dataset import generate, load_OMICS_dataset, convert_to_s2vgraph
-from gnn import MUTAG_Classifier
-from pg_explainer import PGExplainer
 from gnn_explainer import GNNExplainer
 from graphcnn import GraphCNN
 
