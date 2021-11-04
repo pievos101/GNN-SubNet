@@ -435,8 +435,6 @@ class GNNExplainer(torch.nn.Module):
         self.__set_masks__(dataset[0].node_features,dataset[0].edge_mat)
         self.to(x.device)
         
-        #print("Thats the number of nodes")
-        #print(dataset[0].node_features.size()[0])
         n_nodes = dataset[0].node_features.size()[0]
 
         optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
@@ -459,30 +457,15 @@ class GNNExplainer(torch.nn.Module):
                 data = dataset[dd]
                 data_copy = copy(data)
                 h = data.node_features * self.node_feat_mask.sigmoid()
-                #h = data.node_features * self.node_feat_mask.view(1, -1).sigmoid()
-                #feat = torch.reshape(self.node_feat_mask.view(1, -1).sigmoid(),(n_nodes,1)) #@FIX THE 20 to GENERAL SOLUTION
-                #h = torch.mul(data.node_features, feat)
-                #print(feat)
-                #print(data.node_features)
-                #print(h)
-                #print(data.node_features)
-                #print(data.node_features)
                 data_copy.node_features = h
-                #rows, cols = data.edge_mat
-                #print(rows)
-                #print(self.edge_mask.detach().sigmoid())
                 out = self.model([data_copy])
                 log_logits = self.__to_log_prob__(out)
                 loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
                 loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
-                #loss_xx = loss_xx + loss_hit + abs(LOGITS2[dd][PRED[dd]] - (-log_logits[0, PRED[dd][0]]))
-                #loss_xx = loss_xx + param*loss_hit + (1-param)*loss_fail
                 loss_xx = loss_xx + loss_hit 
-            #print(loss_xx)
             loss_xx.backward()
             optimizer.step()
          
-        #print(self.node_feat_mask.view(-1,1).detach())     
         return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
 
 
