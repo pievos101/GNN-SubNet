@@ -15,6 +15,7 @@ files  <- list.files(path2, full.names = TRUE)
 #####################
 # Node Importance
 #####################
+
 par(mfrow=c(2,1))
 filesX  <- files[grep("gnn_feature_mask", files)]
 RES <- vector("list", length(filesX))
@@ -84,7 +85,6 @@ boxplot(SCORES, outline=FALSE, boxwex=0.4,
 #####################
 # Edge Importance
 #####################
-
 filesX  <- files[grep("edge_mask", files)]
 RES <- vector("list", length(filesX))
 for(xx in 1:length(filesX)){

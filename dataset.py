@@ -222,7 +222,7 @@ def save_results(path: str, confusion_array: list, gnn_edge_masks: list,
     np.savetxt(f'{path}/results/log_logits_post.csv', log_logits_post, delimiter=',', fmt='%.3f')
 
     
-def load_KIRC_dataset(edge_path="", feat_paths=[], survival_path=""):
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     """
     Loads KIRC dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
