@@ -21,7 +21,7 @@ from gnn_explainer import GNNExplainer
 from graphcnn import GraphCNN
 
 from community_detection import find_communities
-from Edge_Importance import calc_edge_importance
+from edge_importance import calc_edge_importance
 
 
 LOC = "/home/bastian/LinkedOmics/KIRC"

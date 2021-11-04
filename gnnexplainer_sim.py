@@ -19,7 +19,7 @@ from gnn_explainer import GNNExplainer as gnnexp
 from gnn_explainer import GNNExplainer
 from gnn_training_utils import check_if_graph_is_connected
 from community_detection import find_communities
-from Edge_Importance import calc_edge_importance
+from edge_importance import calc_edge_importance
 
 from graphcnn import GraphCNN
 
