@@ -122,7 +122,7 @@ model.train()
 print("")
 print("Run the Explainer ...")
 
-no_of_runs = 20
+no_of_runs = 10
 lamda = 0.85 # not used anymore
 ems = []
 for idx in range(no_of_runs):

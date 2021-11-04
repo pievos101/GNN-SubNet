@@ -19,9 +19,9 @@ import numpy as np
 import torch
 from torch._C import Graph
 from torch_geometric.data.data import Data
+from sklearn.preprocessing import minmax_scale
 
 from gnn_training_utils import _plain_bfs
-from sklearn.preprocessing import minmax_scale
 from features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data, gen_data_community
 from graph_dataset import GraphDataset
 from s2vgraph import S2VGraph
