@@ -49,7 +49,7 @@ use_weights = False
 weight = torch.tensor([count/len(dataset), 1-count/len(dataset)])
 print(count/len(dataset), 1-count/len(dataset))
 
-model_path = 'kirc_model.pth'
+model_path = 'omics_model.pth'
 no_of_features = dataset[0].x.shape[1]
 nodes_per_graph_nr = dataset[0].x.shape[0]
 
