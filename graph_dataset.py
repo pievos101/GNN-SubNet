@@ -1,10 +1,3 @@
-"""
-    Class for storing graphs
-
-    :author: Afan Secic (main developer), Anna Saranti (corrections and refactoring)
-    :copyright: © 2020 HCI-KDD (ex-AI) group
-    :date: 2021-02-01
-"""
 import torch
 from torch_geometric.data import Dataset
 from torchvision import transforms

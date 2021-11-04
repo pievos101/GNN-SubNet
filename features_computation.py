@@ -1,11 +1,3 @@
-"""
-    Computation of the features of the nodes in the graph
-
-    :author: Afan Secic (main developer), Anna Saranti (corrections and refactoring)
-    :copyright: © 2020 HCI-KDD (ex-AI) group
-    :date: 2020-12-01
-"""
-
 from collections import Counter
 
 import dgl

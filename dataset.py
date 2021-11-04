@@ -1,11 +1,3 @@
-"""
-    Generating dataset for GNN
-
-    :author: Afan Secic (main developer), Anna Saranti (corrections and refactoring)
-    :copyright: © 2020 HCI-KDD (ex-AI) group
-    :date: 2020-12-01
-"""
-
 import copy
 import os
 from pathlib import Path
