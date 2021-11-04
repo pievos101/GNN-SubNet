@@ -190,28 +190,6 @@ torch.save(checkpoint, model_path)
 
 model.train()
 
-###############################################################
-# Thats the PGExplainer Call ##################################
-###############################################################
-#train_graphs = s2v_train_dataset
-#print(len(train_graphs))
-#z = model(train_graphs, get_embedding=True)
-#exp = PGExplainer(model, 32, task="graph", log=True)
-#exp.train_explainer_s2v(train_dataset, z, train_graphs, None)
-#test_graphs = s2v_test_dataset
-#z = model(test_graphs, get_embedding=True)
-#edge_mask = exp.explain_s2v(test_dataset, z)
-#print(edge_mask.shape, train_dataset[0].edge_index.shape)
-
-#em = np.reshape(edge_mask, (len(s2v_test_dataset), -1))
-#np.savetxt('KIRC/edge_masks.txt', edge_mask, fmt='%.3f')
-
-#avg_mask, coms = find_communities("KIRC/edge_index.txt", "KIRC/edge_masks.txt")
-#print(avg_mask, coms)
-###############################################################
-###############################################################
-###############################################################
-
 ############################################
 # Run the Explainer
 ############################################
@@ -242,7 +220,6 @@ mean_em = ems.mean(0)
 
 # Save Edge Masks
 np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
-#print(avg_mask, coms)
 
 ###############################################
 # Perform Community Detection
