@@ -82,6 +82,9 @@ boxplot(SCORES, outline=FALSE, boxwex=0.4,
 	color="white", names=0:(dim(SCORES)[2]-1), las=2, xlab="Nodes", 
 	ylab="Node Importance", col="cadetblue")
 
+colnames(SCORES) <- 0:(dim(SCORES)[2]-1)
+NODE_IMP <- SCORES 
+
 #####################
 # Edge Importance
 #####################
@@ -98,4 +101,10 @@ SCORES <- t(do.call("cbind",RES))
 boxplot(SCORES, outline=FALSE, boxwex=0.4, 
 	color="white", names=edges, las=2, xlab="Edges", 
 	ylab="Edge Importance", col="coral3")
+
+colnames(SCORES) <- edges
+EDGE_IMP <- SCORES 
+
+return(list(NODE_IMP=NODE_IMP, EDGE_IMP=EDGE_IMP))
+
 }
