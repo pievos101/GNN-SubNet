@@ -213,10 +213,10 @@ def save_results(path: str, confusion_array: list, gnn_edge_masks: list,
     log_logits_post = np.reshape(log_logits_post, (len(log_logits_post), -1))
     np.savetxt(f'{path}/results/log_logits_post.csv', log_logits_post, delimiter=',', fmt='%.3f')
 
-    
-def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
+# In case graph is connected    
+def load_OMICS_dataset2(edge_path="", feat_paths=[], survival_path=""):
     """
-    Loads KIRC dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
+    Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
     :param feat_paths: List of strings with paths to node features
     :param survival_path: String with path to file with graph classes
@@ -234,6 +234,102 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     ppi = pd.read_csv(ppi_path, delimiter=" ")
     # added just for reduced number of edges
     ppi = ppi[ppi.combined_score >= 995]
+
+    protein1 = list(set(ppi[ppi.columns.values[0]]))
+    protein2 = list(set(ppi[ppi.columns.values[1]]))
+    protein1.extend(protein2)
+    proteins = list(set(protein1))
+
+    nans = []
+    for feat in feats:
+        nans.extend(feat.columns[feat.isna().any()].tolist())
+    nans = list(set(nans))
+
+    for i in range(len(feats)):
+        feats[i] = feats[i][feats[i].columns.intersection(proteins)]
+        feats[i] = feats[i][feats[i].columns.difference(nans)]
+
+    proteins = list(set(proteins) & set(feats[0].columns.values))
+
+    old_cols = feats[0].columns.values    
+    old_rows = feats[0].index.values
+    new_cols = pd.factorize(old_cols)[0]
+    new_rows = pd.factorize(old_rows)[0]
+
+    col_pairs = {name: no for name,no in zip(old_cols, new_cols)}
+    row_pairs = {name: no for name,no in zip(old_rows, new_rows)}
+
+    ppi = ppi[ppi[ppi.columns.values[0]].isin(old_cols)]
+    ppi = ppi[ppi[ppi.columns.values[1]].isin(old_cols)]
+
+    ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
+    ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
+
+    graphs = []
+    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+
+    #first_idx = edge_path.index('/')
+    #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    last_idx = edge_path.rindex('/')
+    
+    np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    s = list(copy.copy(edge_index[0]))
+    t = list(copy.copy(edge_index[1]))
+
+    s.extend(t)
+    nodes = list(col_pairs.values())
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    edges = np.array(edge_index)
+
+    edges = [(row[0].item(), row[1].item()) for row in edges.T]
+    graph.add_edges_from(edges)
+
+    temp = np.stack(feats, axis=-1)
+    new_temp = []
+    for item in temp:
+        new_temp.append(minmax_scale(item))
+    
+    temp = np.array(new_temp)
+
+    survival = pd.read_csv(survival_path, delimiter=' ')
+    survival_values = survival.to_numpy()
+
+    for idx in range(temp.shape[0]):
+        graphs.append(Data(x=torch.tensor(temp[idx]).float(),
+                        edge_index=torch.tensor(edge_index, dtype=torch.long),
+                        y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
+        #graphs.append(Data(node_features=torch.tensor(temp[idx]).float(),
+        #                edge_mat=torch.tensor(edge_index, dtype=torch.long),
+        #                y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
+    
+    return graphs, col_pairs, row_pairs
+
+
+# In case graph is not connected
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
+    """
+    Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
+    :param edge_path: String with path to file with edges
+    :param feat_paths: List of strings with paths to node features
+    :param survival_path: String with path to file with graph classes
+    return 
+    :graphs: formatted dataset
+    :row_pairs: mapping between integers and proteins
+    :col_pairs: mapping between integers and proteins
+    """
+
+    feats = []
+    for path in feat_paths:
+        feats.append(pd.read_csv(path, delimiter=' '))
+
+    ppi_path = edge_path
+    ppi = pd.read_csv(ppi_path, delimiter=" ")
+    # added just for reduced number of edges
+    ppi = ppi[ppi.combined_score >= 900]
 
     protein1 = list(set(ppi[ppi.columns.values[0]]))
     protein2 = list(set(ppi[ppi.columns.values[1]]))
@@ -323,7 +419,6 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
 
     last_idx = edge_path.rindex('/')
     np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
-
 
     temp = np.stack(feats, axis=-1)
     new_temp = []

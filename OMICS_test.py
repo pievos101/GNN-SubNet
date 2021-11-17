@@ -24,18 +24,18 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-LOC = "/home/bastian/LinkedOmics/KIRC"
+LOC = "/home/bastian/LinkedOmics/BRCA"
 
-dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
-                                [f'{LOC}/KIDNEY_Methy_FEATURES.txt', f'{LOC}/KIDNEY_mRNA_FEATURES.txt'], 
-                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
+#mRNA
+dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_PPI.txt', 
+                                [f'{LOC}/BRCA_mRNA_FEATURES.txt'], 
+                                 f'{LOC}/BRCA_SURVIVAL.txt')
 
-#dataset, col_pairs, row_pairs = load_KIRC_dataset("/home/bastian/LinkedOmics/KIRC/KIDNEY_PPI.txt", 
-#                                ["/home/bastian/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt", "/home/bastian/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt"], 
-#                                 "/home/bastian/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+# Multi-Omics 
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_PPI.txt', 
+#                                [f'{LOC}/BRCA_Methy_FEATURES.txt', f'{LOC}/BRCA_mRNA_FEATURES.txt', f'{LOC}/BRCA_Mut_FEATURES.txt'], 
+#                                 f'{LOC}/BRCA_SURVIVAL.txt')
 
-#dataset, col_pairs, row_pairs = load_KIRC_dataset("KIRC-OV/KIDNEY_OV_PPI.txt", 
-#                                ["KIRC-OV/KIDNEY_OV_Methy_FEATURES.txt", "KIRC-OV/KIDNEY_OV_mRNA_FEATURES.txt"], "KIRC-OV/KIDNEY_OV_TARGET.txt")
 
 print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 
