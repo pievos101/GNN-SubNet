@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from scipy.sparse.extract import find
 import torch
 import torch.nn as nn
@@ -24,28 +25,83 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-LOC = "/home/bastian/LinkedOmics/BRCA"
+LOC = "/home/bastian/LinkedOmics/KIRC"
 
-#mRNA
-dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_PPI.txt', 
-                                [f'{LOC}/BRCA_mRNA_FEATURES.txt'], 
-                                 f'{LOC}/BRCA_SURVIVAL.txt')
+#
+dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
+                                [f'{LOC}/KIDNEY_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_Methy_FEATURES.txt'], 
+                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
+
+print('--------DATASET LOADED-------------')
 
 # Multi-Omics 
 #dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_PPI.txt', 
 #                                [f'{LOC}/BRCA_Methy_FEATURES.txt', f'{LOC}/BRCA_mRNA_FEATURES.txt', f'{LOC}/BRCA_Mut_FEATURES.txt'], 
 #                                 f'{LOC}/BRCA_SURVIVAL.txt')
 
-
 print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 
-count = 0
-for item in dataset:
-    count += item.y.item()
+graphs_class_0_list = []
+graphs_class_1_list = []
+for graph in dataset:
+    if graph.y.numpy() == 0:
+        graphs_class_0_list.append(graph)
+    else:
+        graphs_class_1_list.append(graph)
+
+graphs_class_0_len = len(graphs_class_0_list)
+graphs_class_1_len = len(graphs_class_1_list)
+
+print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
+
+########################################################################################################################
+# [2.] Downsampling of the class that contains more elements ===========================================================
+# ########################################################################################################################
+
+random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
+print(len(random_graphs_class_0_list))
+
+balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
+random.shuffle(balanced_dataset_list)
+print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
+
+list_len = len(balanced_dataset_list)
+#print(list_len)
+train_set_len = int(list_len * 4 / 5)
+train_dataset_list = balanced_dataset_list[:train_set_len]
+test_dataset_list  = balanced_dataset_list[train_set_len:]
+
+train_graph_class_0_nr = 0
+train_graph_class_1_nr = 0
+for graph in train_dataset_list:
+    if graph.y.numpy() == 0:
+        train_graph_class_0_nr += 1
+    else:
+        train_graph_class_1_nr += 1
+print(f"Train graph class 0: {train_graph_class_0_nr}, train graph class 1: {train_graph_class_1_nr}")
+
+test_graph_class_0_nr = 0
+test_graph_class_1_nr = 0
+for graph in test_dataset_list:
+    if graph.y.numpy() == 0:
+        test_graph_class_0_nr += 1
+    else:
+        test_graph_class_1_nr += 1
+print(f"Test graph class 0: {test_graph_class_0_nr}, test graph class 1: {test_graph_class_1_nr}")
+
+s2v_train_dataset = convert_to_s2vgraph(train_dataset_list)
+s2v_test_dataset  = convert_to_s2vgraph(test_dataset_list)
+
+
+# TRAIN GNN -------------------------------------------------- #
+#count = 0
+#for item in dataset:
+#    count += item.y.item()
 
 use_weights = False
-weight = torch.tensor([count/len(dataset), 1-count/len(dataset)])
-print(count/len(dataset), 1-count/len(dataset))
+
+#weight = torch.tensor([count/len(dataset), 1-count/len(dataset)])
+#print(count/len(dataset), 1-count/len(dataset))
 
 model_path = 'omics_model.pth'
 no_of_features = dataset[0].x.shape[1]
@@ -53,15 +109,14 @@ nodes_per_graph_nr = dataset[0].x.shape[0]
 
 load_model = False
 
-print(len(dataset), len(dataset)*0.2)
+#print(len(dataset), len(dataset)*0.2)
 #s2v_dataset = convert_to_s2vgraph(dataset)
-print('--------DATASET LOADED-------------')
-train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=123)
-s2v_train_dataset = convert_to_s2vgraph(train_dataset)
-s2v_test_dataset = convert_to_s2vgraph(test_dataset)
+#train_dataset, test_dataset = train_test_split(dataset, test_size=0.2, random_state=123)
+#s2v_train_dataset = convert_to_s2vgraph(train_dataset)
+#s2v_test_dataset = convert_to_s2vgraph(test_dataset)
 #s2v_train_dataset, s2v_test_dataset = train_test_split(s2v_dataset, test_size=0.2, random_state=123)
 
-epoch_nr = 150
+epoch_nr = 10
 
 input_dim = no_of_features
 n_classes = 2
