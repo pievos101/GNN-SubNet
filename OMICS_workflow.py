@@ -25,42 +25,82 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-#LOC = "/home/bastian/LinkedOmics/KIRC"
-
-# KIRC
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
-#                                [f'{LOC}/KIDNEY_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_Methy_FEATURES.txt'], 
-#                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
-
-#LOC = "/home/bastian/LinkedOmics/OV"
-
-#OV
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_PPI.txt', 
-#                                [f'{LOC}/OV_mRNA_FEATURES.txt', f'{LOC}/OV_Methy_FEATURES.txt'], 
-#                                 f'{LOC}/OV_SURVIVAL.txt')
-
-#LOC = "/home/bastian/LinkedOmics/KIRC-OV"
-
-#KIRC-OV
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_OV_PPI.txt', 
-#                                [f'{LOC}/KIDNEY_OV_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_OV_Methy_FEATURES.txt'], 
-#                                 f'{LOC}/KIDNEY_OV_TARGET.txt')
-
-
+### KIDNEY ------------------------- #
 LOC = "/home/bastian/LinkedOmics/KIRC-RANDOM"
 
-#KIRC-OV
+#KIRC-RANDOM MULTI-OMICS
 dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
                                 [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
                                  f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
+#KIRC-RANDOM mRNA
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+#                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt'], 
+#                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
+
+#KIRC-RANDOM Methy
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+#                                [f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
+
+
+### OVARIAN ------------------------- #
+#LOC = "/home/bastian/LinkedOmics/OV-RANDOM"
+
+#OV-RANDOM MULTI-OMICS
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#                                [f'{LOC}/OV_RANDOM_mRNA_FEATURES.txt', f'{LOC}/OV_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/OV_RANDOM_TARGET.txt')
+
+#OV-RANDOM mRNA
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#                                [f'{LOC}/OV_RANDOM_mRNA_FEATURES.txt'], 
+#                                 f'{LOC}/OV_RANDOM_TARGET.txt')
+
+#OV-RANDOM Methy
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#                                [f'{LOC}/OV_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/OV_RANDOM_TARGET.txt')
+
+### LUAD ------------------------- #
+#LOC = "/home/bastian/LinkedOmics/LUAD-RANDOM"
+
+#LUAD-RANDOM MULTI-OMICS
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#                                [f'{LOC}/LUAD_RANDOM_mRNA_FEATURES.txt', f'{LOC}/LUAD_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
+
+#LUAD-RANDOM mRNA
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#                                [f'{LOC}/LUAD_RANDOM_mRNA_FEATURES.txt'], 
+#                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
+
+#LUAD-RANDOM Methy
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#                                [f'{LOC}/LUAD_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
+
+
+### BRCA ------------------------- #
+#LOC = "/home/bastian/LinkedOmics/BRCA-RANDOM"
+
+#BRCA-RANDOM MULTI-OMICS
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#                                [f'{LOC}/BRCA_RANDOM_mRNA_FEATURES.txt', f'{LOC}/BRCA_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
+
+#BRCA-RANDOM mRNA
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#                                [f'{LOC}/BRCA_RANDOM_mRNA_FEATURES.txt'], 
+#                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
+
+#BRCA-RANDOM Methy
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#                                [f'{LOC}/BRCA_RANDOM_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
+
 
 print('--------DATASET LOADED-------------')
-
-# Multi-Omics 
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_PPI.txt', 
-#                                [f'{LOC}/BRCA_Methy_FEATURES.txt', f'{LOC}/BRCA_mRNA_FEATURES.txt', f'{LOC}/BRCA_Mut_FEATURES.txt'], 
-#                                 f'{LOC}/BRCA_SURVIVAL.txt')
 
 print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 
