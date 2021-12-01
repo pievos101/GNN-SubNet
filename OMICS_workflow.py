@@ -25,12 +25,18 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-LOC = "/home/bastian/LinkedOmics/KIRC"
+LOC = "/home/bastian/LinkedOmics/OV"
 
-#
-dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
-                                [f'{LOC}/KIDNEY_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_Methy_FEATURES.txt'], 
-                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
+# KIRC
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
+#                                [f'{LOC}/KIDNEY_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
+
+#OV
+dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_PPI.txt', 
+                                [f'{LOC}/OV_mRNA_FEATURES.txt', f'{LOC}/OV_Methy_FEATURES.txt'], 
+                                 f'{LOC}/OV_SURVIVAL.txt')
+
 
 print('--------DATASET LOADED-------------')
 
@@ -58,10 +64,19 @@ print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_le
 # [2.] Downsampling of the class that contains more elements ===========================================================
 # ########################################################################################################################
 
-random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
-print(len(random_graphs_class_0_list))
+if graphs_class_0_len >= graphs_class_1_len: 
+    random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
+    balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
 
-balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
+if graphs_class_0_len < graphs_class_1_len: 
+    random_graphs_class_1_list = random.sample(graphs_class_1_list, graphs_class_0_len)
+    balanced_dataset_list = graphs_class_0_list + random_graphs_class_1_list
+
+
+#print(len(random_graphs_class_0_list))
+#print(len(random_graphs_class_1_list))
+
+
 random.shuffle(balanced_dataset_list)
 print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
 
