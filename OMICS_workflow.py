@@ -25,17 +25,34 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-LOC = "/home/bastian/LinkedOmics/OV"
+#LOC = "/home/bastian/LinkedOmics/KIRC"
 
 # KIRC
 #dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_PPI.txt', 
 #                                [f'{LOC}/KIDNEY_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/KIDNEY_SURVIVAL.txt')
 
+#LOC = "/home/bastian/LinkedOmics/OV"
+
 #OV
-dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_PPI.txt', 
-                                [f'{LOC}/OV_mRNA_FEATURES.txt', f'{LOC}/OV_Methy_FEATURES.txt'], 
-                                 f'{LOC}/OV_SURVIVAL.txt')
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_PPI.txt', 
+#                                [f'{LOC}/OV_mRNA_FEATURES.txt', f'{LOC}/OV_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/OV_SURVIVAL.txt')
+
+#LOC = "/home/bastian/LinkedOmics/KIRC-OV"
+
+#KIRC-OV
+#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_OV_PPI.txt', 
+#                                [f'{LOC}/KIDNEY_OV_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_OV_Methy_FEATURES.txt'], 
+#                                 f'{LOC}/KIDNEY_OV_TARGET.txt')
+
+
+LOC = "/home/bastian/LinkedOmics/KIRC-RANDOM"
+
+#KIRC-OV
+dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
+                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
 
 print('--------DATASET LOADED-------------')
