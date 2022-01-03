@@ -342,7 +342,7 @@ for idx in range(no_of_runs):
     #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
     ems.append(gnn_edge_masks.sigmoid().numpy())
     
-ems = np.array(ems)
+ems     = np.array(ems)
 mean_em = ems.mean(0)
 
 # OUTPUT -- Save Edge Masks
@@ -352,7 +352,7 @@ np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
 # Perform Community Detection
 ###############################################
 
-avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.csv')
+avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
 
 np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
 

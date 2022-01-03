@@ -55,9 +55,11 @@ def find_communities(edge_index_path, edge_masks_path=None, detection_alg='louva
             continue
         avg_mask = 0
         if edge_masks is not None:
+            count = 0
             for edge in com:
                 avg_mask += g.es[g.get_eid(edge[0], edge[1])]['weight']
-            avg_edge_masks.append(avg_mask/len(com)) 
+                count = count + 1
+            avg_edge_masks.append(avg_mask/count) 
         
     return avg_edge_masks, partition
 
