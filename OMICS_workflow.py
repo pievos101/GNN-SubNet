@@ -346,7 +346,7 @@ ems = np.array(ems)
 mean_em = ems.mean(0)
 
 # OUTPUT -- Save Edge Masks
-np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
+np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
 
 ###############################################
 # Perform Community Detection
