@@ -30,4 +30,15 @@ TOPCOMM_edges_names <- rbind(genes[as.numeric(TOPCOMM_edges[1,]+1)],
 colnames(TOPCOMM_edges_names) <- NULL
 TOPCOMM_edges_names 
 
-edge_mask[IDS]
+TOPCOMM_edge_imp = edge_mask[IDS]
+
+MODULE <- cbind(t(TOPCOMM_edges_names), TOPCOMM_edge_imp)
+colnames(MODULE) <- c("gene1","gene2","IMP")
+
+# Plot the detected disease module
+g  <- graph_from_edgelist(as.matrix(MODULE[,1:2]), directed=TRUE)
+
+plot(g, vertex.shape="none", vertex.color="black",layout=layout.circle, 
+	edge.width = round(as.numeric(MODULE[,3])*5, digits=3),
+	edge.label = round(as.numeric(MODULE[,3]), digits=3),
+	edge.label.cex = 0.8)

@@ -412,8 +412,8 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     graph.add_edges_from(edges)
 
     nodes = []
-    # Get a connected subgraph with at least 500 nodes
-    while len(nodes) < 500:
+    # Get a connected subgraph with at least 1000 nodes
+    while len(nodes) < 1000:
         nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
         
         nodes = list(nodes)
