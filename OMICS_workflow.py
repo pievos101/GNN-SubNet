@@ -29,17 +29,17 @@ from edge_importance import calc_edge_importance
 LOC = "/home/bastian/LinkedOmics/KIRC-RANDOM"
 
 #KIRC-RANDOM MULTI-OMICS
-dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
                                 [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
                                  f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
 #KIRC-RANDOM mRNA
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
 #                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt'], 
 #                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
 #KIRC-RANDOM Methy
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
 #                                [f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
@@ -48,17 +48,17 @@ dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt
 #LOC = "/home/bastian/LinkedOmics/OV-RANDOM"
 
 #OV-RANDOM MULTI-OMICS
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
 #                                [f'{LOC}/OV_RANDOM_mRNA_FEATURES.txt', f'{LOC}/OV_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/OV_RANDOM_TARGET.txt')
 
 #OV-RANDOM mRNA
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
 #                                [f'{LOC}/OV_RANDOM_mRNA_FEATURES.txt'], 
 #                                 f'{LOC}/OV_RANDOM_TARGET.txt')
 
 #OV-RANDOM Methy
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/OV_RANDOM_PPI.txt', 
 #                                [f'{LOC}/OV_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/OV_RANDOM_TARGET.txt')
 
@@ -66,17 +66,17 @@ dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt
 #LOC = "/home/bastian/LinkedOmics/LUAD-RANDOM"
 
 #LUAD-RANDOM MULTI-OMICS
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
 #                                [f'{LOC}/LUAD_RANDOM_mRNA_FEATURES.txt', f'{LOC}/LUAD_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
 
 #LUAD-RANDOM mRNA
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
 #                                [f'{LOC}/LUAD_RANDOM_mRNA_FEATURES.txt'], 
 #                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
 
 #LUAD-RANDOM Methy
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/LUAD_RANDOM_PPI.txt', 
 #                                [f'{LOC}/LUAD_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/LUAD_RANDOM_TARGET.txt')
 
@@ -85,17 +85,17 @@ dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt
 #LOC = "/home/bastian/LinkedOmics/BRCA-RANDOM"
 
 #BRCA-RANDOM MULTI-OMICS
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
 #                                [f'{LOC}/BRCA_RANDOM_mRNA_FEATURES.txt', f'{LOC}/BRCA_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
 
 #BRCA-RANDOM mRNA
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
 #                                [f'{LOC}/BRCA_RANDOM_mRNA_FEATURES.txt'], 
 #                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
 
 #BRCA-RANDOM Methy
-#dataset, col_pairs, row_pairs = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
+#dataset, gene_names = load_OMICS_dataset(f'{LOC}/BRCA_RANDOM_PPI.txt', 
 #                                [f'{LOC}/BRCA_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
 
@@ -345,7 +345,7 @@ for idx in range(no_of_runs):
 ems = np.array(ems)
 mean_em = ems.mean(0)
 
-# Save Edge Masks
+# OUTPUT -- Save Edge Masks
 np.savetxt(f'{LOC}/edge_masks.csv', mean_em, delimiter=',', fmt='%.5f')
 
 ###############################################
@@ -367,3 +367,11 @@ for idx in range(len(avg_mask)):
     f.write(s_com + '\n')
 
 f.close()
+
+# Write gene_names to file
+textfile = open(f'{LOC}/gene_names.txt', "w")
+for element in gene_names:
+    listToStr = ''.join(map(str, element)) 
+    textfile.write(listToStr + "\n")
+
+textfile.close()

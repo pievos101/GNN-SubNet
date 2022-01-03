@@ -309,7 +309,7 @@ def load_OMICS_dataset2(edge_path="", feat_paths=[], survival_path=""):
     return graphs, col_pairs, row_pairs
 
 
-# In case graph is not connected
+# In case graph may not be connected
 def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     """
     Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
@@ -322,47 +322,72 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     :col_pairs: mapping between integers and proteins
     """
 
+    # Read in the feature matrices
     feats = []
     for path in feat_paths:
         feats.append(pd.read_csv(path, delimiter=' '))
 
+    # Read in the network    
     ppi_path = edge_path
     ppi = pd.read_csv(ppi_path, delimiter=" ")
-    # added just for reduced number of edges
+    
+    # added just for reduced number of edges - cut off
     ppi = ppi[ppi.combined_score >= 950]
 
     protein1 = list(set(ppi[ppi.columns.values[0]]))
     protein2 = list(set(ppi[ppi.columns.values[1]]))
     protein1.extend(protein2)
     proteins = list(set(protein1))
+    # proteins contains the reduced PPI proteins
 
+    # find feature columns with NA values
     nans = []
     for feat in feats:
         nans.extend(feat.columns[feat.isna().any()].tolist())
     nans = list(set(nans))
+    # nans contains the genes with NA entries
 
     for i in range(len(feats)):
+        # get feature columns which are withon the PPI
         feats[i] = feats[i][feats[i].columns.intersection(proteins)]
+        # exclude the NA columns
         feats[i] = feats[i][feats[i].columns.difference(nans)]
 
+    # feats is a harmonized feature matrix
+
+    # Now harmonize the PPI network
+         
     proteins = list(set(proteins) & set(feats[0].columns.values))
 
-    old_cols = feats[0].columns.values    
+    # proteins are the proteins which are in feat and ppi
+
+    # old_cols are gene names
+    old_cols = feats[0].columns.values
+    # old rows are patient names    
     old_rows = feats[0].index.values
+    # new_cols are ids 0:n.genes
     new_cols = pd.factorize(old_cols)[0]
+    # new_rows are ids 0:n.patients
     new_rows = pd.factorize(old_rows)[0]
 
+    # Mapping between genes and ids 
     col_pairs = {name: no for name,no in zip(old_cols, new_cols)}
+    # Mapping between patient names and ids
     row_pairs = {name: no for name,no in zip(old_rows, new_rows)}
 
+    # Harmonize/Reduce PPI with feature matrix
     ppi = ppi[ppi[ppi.columns.values[0]].isin(old_cols)]
     ppi = ppi[ppi[ppi.columns.values[1]].isin(old_cols)]
 
+    # convert genes to node ids
     ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
     ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
 
+    # col_pairs --> node ids + gene names!
+
     graphs = []
     edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    # convert to a proper format and sort
     edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
 
     #first_idx = edge_path.index('/')
@@ -372,22 +397,25 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     
     np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
 
+    # ?
     s = list(copy.copy(edge_index[0]))
     t = list(copy.copy(edge_index[1]))
-
     s.extend(t)
+
     nodes = list(col_pairs.values())
     graph = nx.Graph()
     graph.add_nodes_from(nodes)
     edges = np.array(edge_index)
 
+    # convert to proper format
     edges = [(row[0].item(), row[1].item()) for row in edges.T]
     graph.add_edges_from(edges)
 
     nodes = []
+    # Get a connected subgraph with at least 500 nodes
     while len(nodes) < 500:
         nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
-
+        
         nodes = list(nodes)
 
     isolated_nodes = list(nx.isolates(graph))
@@ -438,7 +466,10 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
         #                edge_mat=torch.tensor(edge_index, dtype=torch.long),
         #                y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
     
-    return graphs, col_pairs, row_pairs
+    gene_names = feats[0].columns.values
+
+    return graphs, gene_names
+
 
 def convert_to_s2vgraph(graphs):
     s2v_graphs = []
