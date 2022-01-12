@@ -7,7 +7,7 @@ It expects the PPI network as an input, the feature matrices, as well as the out
 The PPI network consists of three columns.
 The first two colums reflect the edges between gene names, the third column is the confidence score between the specified edges. The range of this score is [0,999], where high sores mean high confidence.
 
-The rows of the feature matrices (e.g mRNA, and DNA Methylation) reflect the patients, whereas the columns represent the features (genes). 
+The rows of the feature matrices (e.g mRNA, and DNA Methylation) reflect the patients, whereas the columns represent the features (genes). Row names as well as column names are required!
 
 To execute the script simply type 'python OMICS_workflow.py' within your console.
 
