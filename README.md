@@ -15,6 +15,6 @@ After exectution of 'OMICS_workflow.py', importance scores are stored in the 'ed
 
 The detected disease subnetworks can be found within the 'communities.txt' file, and the corresponding scores within the 'communities_scores.txt' file.
 
-Note, the mentioned files contain the node identifier which match the gene names stored in 'gene_names.txt'
+Note, the mentioned community file contain the network node identifier which match the order of the gene names stored in 'gene_names.txt'
 
   
