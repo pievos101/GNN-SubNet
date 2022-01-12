@@ -9,6 +9,8 @@ The first two colums reflect the edges between gene names, the third column is t
 
 The rows of the feature matrices (e.g mRNA, and DNA Methylation) reflect the patients, whereas the columns represent the features (genes). 
 
+To execute the script simply type 'python OMICS_workflow.py' within your console.
+
 The mentioned OMICS workflow performs GNN classification, explanations, and community detection for disease subnetwork discovery. 
 
 After exectution of 'OMICS_workflow.py', importance scores are stored in the 'edge_mask.txt' file of the data folder. 
