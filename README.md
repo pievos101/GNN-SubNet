@@ -1,4 +1,4 @@
-# GNN-SubNet: Subnetwork Detection with Explainable Graph Neural Networks
+# GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
 
 The main file is called 'OMICS_workflow.py'.
 Within that python file you find the function 'load_OMICS_dataset()'. 
