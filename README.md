@@ -1,5 +1,7 @@
 # GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
 
+## https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1
+
 The main file is called 'OMICS_workflow.py'.
 Within that python file you find the function 'load_OMICS_dataset()'. 
 It expects the PPI network as an input, the feature matrices, as well as the outcome class. The input needs to be adjusted by the user.
