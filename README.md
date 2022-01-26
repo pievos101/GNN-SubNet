@@ -11,6 +11,8 @@ The first two columns reflect the edges between the nodes (gene names), the thir
 
 The rows of the feature matrices (e.g mRNA, and DNA Methylation) reflect the patients, whereas the columns represent the features (genes). Row names as well as column names are required!
 
+Please see the folder "datasets/TCGA" for some sample/example files.
+
 To execute the script simply type 'python OMICS_workflow.py' within your console.
 
 The mentioned OMICS workflow performs GNN classification, explanations, and community detection for disease subnetwork discovery. 
