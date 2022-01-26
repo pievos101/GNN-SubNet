@@ -310,7 +310,7 @@ def load_OMICS_dataset2(edge_path="", feat_paths=[], survival_path=""):
 
 
 # In case graph may not be connected
-def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", subgraph_size=-1):
     """
     Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
@@ -411,36 +411,42 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path=""):
     edges = [(row[0].item(), row[1].item()) for row in edges.T]
     graph.add_edges_from(edges)
 
-    nodes = []
-    # Get a connected subgraph with at least 1000 nodes
-    while len(nodes) < 1000:
-        nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
+    
+    # Start of subgraph extraction ------------------------------------------------- #
+    if subgraph_size!=-1:
+
+        # Get a connected subgraph with at least subgraph_size=1000 nodes
+        nodes = []
+        while len(nodes) < subgraph_size:
+            nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
+            
+            nodes = list(nodes)
+
+        isolated_nodes = list(nx.isolates(graph))
         
-        nodes = list(nodes)
+        col_pairs_for_iso = {no: name for name,no in zip(old_cols, new_cols)}
 
-    isolated_nodes = list(nx.isolates(graph))
-    
-    col_pairs_for_iso = {no: name for name,no in zip(old_cols, new_cols)}
+        iso_nodes = [col_pairs_for_iso[x] for x in isolated_nodes]
+        for feat in feats:
+            feat.drop(columns = iso_nodes, inplace=True)
+        
+        ppi = ppi.drop(ppi[(~ppi.protein1.isin(nodes)) | (~ppi.protein2.isin(nodes))].index)
+        
+        drop_nodes = [col_pairs_for_iso[x] for x in nodes]
+        for feat in feats:
+            feat.drop(feat.columns.difference(drop_nodes), 1, inplace=True)
 
-    iso_nodes = [col_pairs_for_iso[x] for x in isolated_nodes]
-    for feat in feats:
-        feat.drop(columns = iso_nodes, inplace=True)
-    
-    ppi = ppi.drop(ppi[(~ppi.protein1.isin(nodes)) | (~ppi.protein2.isin(nodes))].index)
-    
-    drop_nodes = [col_pairs_for_iso[x] for x in nodes]
-    for feat in feats:
-        feat.drop(feat.columns.difference(drop_nodes), 1, inplace=True)
+        new_nodes = list(range(len(nodes)))
+        new_nodes_dict = {old: new for old,new in zip(nodes, new_nodes)}
+        ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(new_nodes_dict)
+        ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(new_nodes_dict)   
+        for feat in feats:
+            feat.rename(columns=new_nodes_dict, inplace=True)
 
-    new_nodes = list(range(len(nodes)))
-    new_nodes_dict = {old: new for old,new in zip(nodes, new_nodes)}
-    ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(new_nodes_dict)
-    ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(new_nodes_dict)   
-    for feat in feats:
-        feat.rename(columns=new_nodes_dict, inplace=True)
+        edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+        edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
 
-    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
-    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+    # End of subgraph extraction ------------------------------------------------- #
 
     #first_idx = edge_path.index('/')
     #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')

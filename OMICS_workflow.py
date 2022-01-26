@@ -33,6 +33,23 @@ dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt',
                                 [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
                                  f'{LOC}/KIDNEY_RANDOM_TARGET.txt')
 
+# Check whether graph is connected 
+check = check_if_graph_is_connected(dataset[0].edge_index)
+print("Graph is connected ", check)
+
+if check == False:
+
+    print("Calculate subgraph ...")
+    #KIRC-RANDOM MULTI-OMICS
+    dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
+                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
+                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt', 1000)
+
+check = check_if_graph_is_connected(dataset[0].edge_index)
+print("Graph is connected ", check)
+
+print("DATASET LOADED\n")
+
 #KIRC-RANDOM mRNA
 #dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
 #                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt'], 
@@ -99,10 +116,6 @@ dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt',
 #                                [f'{LOC}/BRCA_RANDOM_Methy_FEATURES.txt'], 
 #                                 f'{LOC}/BRCA_RANDOM_TARGET.txt')
 
-
-print('--------DATASET LOADED-------------')
-
-print("Graph is connected", check_if_graph_is_connected(dataset[0].edge_index))
 
 graphs_class_0_list = []
 graphs_class_1_list = []
