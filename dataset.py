@@ -213,104 +213,9 @@ def save_results(path: str, confusion_array: list, gnn_edge_masks: list,
     log_logits_post = np.reshape(log_logits_post, (len(log_logits_post), -1))
     np.savetxt(f'{path}/results/log_logits_post.csv', log_logits_post, delimiter=',', fmt='%.3f')
 
-# In case graph is connected    
-def load_OMICS_dataset2(edge_path="", feat_paths=[], survival_path=""):
-    """
-    Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
-    :param edge_path: String with path to file with edges
-    :param feat_paths: List of strings with paths to node features
-    :param survival_path: String with path to file with graph classes
-    return 
-    :graphs: formatted dataset
-    :row_pairs: mapping between integers and proteins
-    :col_pairs: mapping between integers and proteins
-    """
-
-    feats = []
-    for path in feat_paths:
-        feats.append(pd.read_csv(path, delimiter=' '))
-
-    ppi_path = edge_path
-    ppi = pd.read_csv(ppi_path, delimiter=" ")
-    # added just for reduced number of edges
-    ppi = ppi[ppi.combined_score >= 995]
-
-    protein1 = list(set(ppi[ppi.columns.values[0]]))
-    protein2 = list(set(ppi[ppi.columns.values[1]]))
-    protein1.extend(protein2)
-    proteins = list(set(protein1))
-
-    nans = []
-    for feat in feats:
-        nans.extend(feat.columns[feat.isna().any()].tolist())
-    nans = list(set(nans))
-
-    for i in range(len(feats)):
-        feats[i] = feats[i][feats[i].columns.intersection(proteins)]
-        feats[i] = feats[i][feats[i].columns.difference(nans)]
-
-    proteins = list(set(proteins) & set(feats[0].columns.values))
-
-    old_cols = feats[0].columns.values    
-    old_rows = feats[0].index.values
-    new_cols = pd.factorize(old_cols)[0]
-    new_rows = pd.factorize(old_rows)[0]
-
-    col_pairs = {name: no for name,no in zip(old_cols, new_cols)}
-    row_pairs = {name: no for name,no in zip(old_rows, new_rows)}
-
-    ppi = ppi[ppi[ppi.columns.values[0]].isin(old_cols)]
-    ppi = ppi[ppi[ppi.columns.values[1]].isin(old_cols)]
-
-    ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
-    ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
-
-    graphs = []
-    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
-    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
-
-    #first_idx = edge_path.index('/')
-    #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
-
-    last_idx = edge_path.rindex('/')
-    
-    np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
-
-    s = list(copy.copy(edge_index[0]))
-    t = list(copy.copy(edge_index[1]))
-
-    s.extend(t)
-    nodes = list(col_pairs.values())
-    graph = nx.Graph()
-    graph.add_nodes_from(nodes)
-    edges = np.array(edge_index)
-
-    edges = [(row[0].item(), row[1].item()) for row in edges.T]
-    graph.add_edges_from(edges)
-
-    temp = np.stack(feats, axis=-1)
-    new_temp = []
-    for item in temp:
-        new_temp.append(minmax_scale(item))
-    
-    temp = np.array(new_temp)
-
-    survival = pd.read_csv(survival_path, delimiter=' ')
-    survival_values = survival.to_numpy()
-
-    for idx in range(temp.shape[0]):
-        graphs.append(Data(x=torch.tensor(temp[idx]).float(),
-                        edge_index=torch.tensor(edge_index, dtype=torch.long),
-                        y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
-        #graphs.append(Data(node_features=torch.tensor(temp[idx]).float(),
-        #                edge_mat=torch.tensor(edge_index, dtype=torch.long),
-        #                y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
-    
-    return graphs, col_pairs, row_pairs
-
 
 # In case graph may not be connected
-def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", subgraph_size=-1):
+def load_OMICS_dataset_old(edge_path="", feat_paths=[], survival_path="", subgraph_size=-1):
     """
     Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
@@ -476,6 +381,185 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", subgraph_s
 
     return graphs, gene_names
 
+
+# In case graph may not be connected
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", subgraph_size=-1):
+    """
+    Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
+    :param edge_path: String with path to file with edges
+    :param feat_paths: List of strings with paths to node features
+    :param survival_path: String with path to file with graph classes
+    return 
+    :graphs: formatted dataset
+    :row_pairs: mapping between integers and proteins
+    :col_pairs: mapping between integers and proteins
+    """
+
+    # Read in the feature matrices
+    feats = []
+    for path in feat_paths:
+        feats.append(pd.read_csv(path, delimiter=' '))
+
+    # Read in the network    
+    ppi_path = edge_path
+    ppi = pd.read_csv(ppi_path, delimiter=" ")
+    
+    # added just for reduced number of edges - cut off
+    ppi = ppi[ppi.combined_score >= 950]
+
+    protein1 = list(set(ppi[ppi.columns.values[0]]))
+    protein2 = list(set(ppi[ppi.columns.values[1]]))
+    protein1.extend(protein2)
+    proteins = list(set(protein1))
+    # proteins contains the reduced PPI proteins
+
+    # find feature columns with NA values
+    nans = []
+    for feat in feats:
+        nans.extend(feat.columns[feat.isna().any()].tolist())
+    nans = list(set(nans))
+    # nans contains the genes with NA entries
+
+    for i in range(len(feats)):
+        # get feature columns which are withon the PPI
+        feats[i] = feats[i][feats[i].columns.intersection(proteins)]
+        # exclude the NA columns
+        feats[i] = feats[i][feats[i].columns.difference(nans)]
+
+    # feats is a harmonized feature matrix
+
+    # Now harmonize the PPI network
+         
+    proteins = list(set(proteins) & set(feats[0].columns.values))
+
+    # proteins are the proteins which are in feat and ppi
+
+    # old_cols are gene names
+    old_cols = feats[0].columns.values
+    # old rows are patient names    
+    old_rows = feats[0].index.values
+    # new_cols are ids 0:n.genes
+    new_cols = pd.factorize(old_cols)[0]
+    # new_rows are ids 0:n.patients
+    new_rows = pd.factorize(old_rows)[0]
+
+    # Mapping between genes and ids 
+    col_pairs = {name: no for name,no in zip(old_cols, new_cols)}
+    # Mapping between patient names and ids
+    row_pairs = {name: no for name,no in zip(old_rows, new_rows)}
+
+    # Harmonize/Reduce PPI with feature matrix
+    ppi = ppi[ppi[ppi.columns.values[0]].isin(old_cols)]
+    ppi = ppi[ppi[ppi.columns.values[1]].isin(old_cols)]
+
+    # convert genes to node ids
+    ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
+    ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
+
+    # col_pairs --> node ids + gene names!
+
+    graphs = []
+    edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    # convert to a proper format and sort
+    edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+
+    #first_idx = edge_path.index('/')
+    #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    last_idx = edge_path.rindex('/')
+    
+    np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    # ?
+    s = list(copy.copy(edge_index[0]))
+    t = list(copy.copy(edge_index[1]))
+    s.extend(t)
+
+    nodes = list(col_pairs.values())
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    edges = np.array(edge_index)
+
+    # convert to proper format
+    edges = [(row[0].item(), row[1].item()) for row in edges.T]
+    graph.add_edges_from(edges)
+
+    
+    # Start of subgraph extraction (largest component) ------------------------------------------------- #
+    if subgraph_size!=-1:
+
+        # Get a connected subgraph with at least subgraph_size=1000 nodes
+        #nodes = []
+        #while len(nodes) < subgraph_size:
+        #    nodes = _plain_bfs(graph, np.random.randint(0,len(graph.nodes)))
+            
+        #    nodes = list(nodes)
+
+        #isolated_nodes = list(nx.isolates(graph))
+        
+        col_pairs_for_iso = {no: name for name,no in zip(old_cols, new_cols)}
+
+        #iso_nodes = [col_pairs_for_iso[x] for x in isolated_nodes]
+        #for feat in feats:
+        #    feat.drop(columns = iso_nodes, inplace=True)
+        
+        # Get largest component
+        print('Number of subgraphs: ',nx.number_connected_components(graph))
+        COMPONENTS = list(nx.connected_components(graph))
+        L = []        
+        for component in COMPONENTS:
+            #print(component)
+            L.append(len(component))
+
+        max_id = L.index(max(L))    
+        nodes  = COMPONENTS[max_id]
+        print('Size of subgraph: ', len(nodes))
+        
+        ppi = ppi.drop(ppi[(~ppi.protein1.isin(nodes)) | (~ppi.protein2.isin(nodes))].index)
+        
+        drop_nodes = [col_pairs_for_iso[x] for x in nodes]
+        for feat in feats:
+            feat.drop(feat.columns.difference(drop_nodes), 1, inplace=True)
+
+        new_nodes = list(range(len(nodes)))
+        new_nodes_dict = {old: new for old,new in zip(nodes, new_nodes)}
+        ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(new_nodes_dict)
+        ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(new_nodes_dict)   
+        for feat in feats:
+            feat.rename(columns=new_nodes_dict, inplace=True)
+
+        edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+        edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
+
+    # End of subgraph extraction ------------------------------------------------- #
+
+    #first_idx = edge_path.index('/')
+    #np.savetxt(f'{edge_path[:first_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    last_idx = edge_path.rindex('/')
+    np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
+
+    temp = np.stack(feats, axis=-1)
+    new_temp = []
+    for item in temp:
+        new_temp.append(minmax_scale(item))
+    
+    temp = np.array(new_temp)
+
+    survival = pd.read_csv(survival_path, delimiter=' ')
+    survival_values = survival.to_numpy()
+
+    for idx in range(temp.shape[0]):
+        graphs.append(Data(x=torch.tensor(temp[idx]).float(),
+                        edge_index=torch.tensor(edge_index, dtype=torch.long),
+                        y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
+        #graphs.append(Data(node_features=torch.tensor(temp[idx]).float(),
+        #                edge_mat=torch.tensor(edge_index, dtype=torch.long),
+        #                y=torch.tensor(survival_values[0][idx], dtype=torch.long)))
+    
+    gene_names = feats[0].columns.values
+
+    return graphs, gene_names
 
 def convert_to_s2vgraph(graphs):
     s2v_graphs = []
