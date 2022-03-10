@@ -359,6 +359,63 @@ class GNNExplainer(torch.nn.Module):
     def __repr__(self):
         return f'{self.__class__.__name__}()'
 
+    
+    def explain_graph_s2v(self, dataset, param, idd):
+        # TODO -- vanilla GNNexplainer without sampling
+        self.model.eval()
+        self.__clear_masks__()    
+
+        PRED = []
+        LOGITS = []
+        LOGITS2 =[]
+        # Get the initial prediction.
+        with torch.no_grad():
+            #for yy in range(len(dataset)):
+            x, edge_index = dataset[idd].node_features, dataset[idd].edge_mat
+            out = self.model([dataset[idd]])
+            log_logits = self.__to_log_prob__(out)
+            pp = log_logits.argmax(dim=-1)
+            PRED.append(pp)
+            LOGITS.append(-log_logits[0, pp])
+            LOGITS2.append(-log_logits[0, :])    
+
+        self.__set_masks__(dataset[0].node_features,dataset[0].edge_mat)
+        self.to(x.device)
+        
+        n_nodes = dataset[0].node_features.size()[0]
+
+        optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
+        
+        #optimizer = torch.optim.Adam([self.edge_mask],
+        #                             lr=self.lr)                        
+                        
+        # all nodes belong to same graph
+        batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
+        
+        for epoch in range(1, self.epochs + 1):
+            #loss_xx  = 0 
+            #sampSize = 10
+            #if epoch%50==1: 
+            #    ids  = np.random.randint(len(dataset), size=sampSize)
+                
+            optimizer.zero_grad()
+            #for dd in ids: 
+            data = dataset[idd]
+            data_copy = copy(data)
+            h = data.node_features * self.node_feat_mask.sigmoid()
+            data_copy.node_features = h
+            out = self.model([data_copy])
+            log_logits = self.__to_log_prob__(out)
+            loss_hit  = self.__loss__(-1, log_logits, PRED[0])
+            loss_fail = self.__loss__(-1, log_logits, abs(PRED[0]-1))
+            loss_xx = loss_hit 
+
+        loss_xx.backward()
+        optimizer.step()
+         
+        return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
+
+
     def explain_graph_modified(self, dataset, param):
         self.model.eval()
         self.__clear_masks__()    

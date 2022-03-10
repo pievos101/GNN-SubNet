@@ -43,7 +43,7 @@ if check == False:
     #KIRC-RANDOM MULTI-OMICS
     dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
                                 [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
-                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt', 1000)
+                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt', False)
 
 check = check_if_graph_is_connected(dataset[0].edge_index)
 print("Graph is connected ", check)
