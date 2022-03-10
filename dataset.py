@@ -383,7 +383,7 @@ def load_OMICS_dataset_old(edge_path="", feat_paths=[], survival_path="", subgra
 
 
 # In case graph may not be connected
-def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=True):
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=True, threshold=950):
     """
     Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
@@ -405,7 +405,7 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
     ppi = pd.read_csv(ppi_path, delimiter=" ")
     
     # added just for reduced number of edges - cut off
-    ppi = ppi[ppi.combined_score >= 950] # TODO put that as a param
+    ppi = ppi[ppi.combined_score >= threshold] # TODO put that as a param
 
     protein1 = list(set(ppi[ppi.columns.values[0]]))
     protein2 = list(set(ppi[ppi.columns.values[1]]))
