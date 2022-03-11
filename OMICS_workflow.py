@@ -29,7 +29,10 @@ from edge_importance import calc_edge_importance
 LOC   = "/home/bastian/LinkedOmics/KIRC-RANDOM"
 PPI   = f'{LOC}/KIDNEY_RANDOM_PPI.txt'
 FEATS = [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
+#FEATS = [f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']#, f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
 TARG  = f'{LOC}/KIDNEY_RANDOM_TARGET.txt'
+
+epoch_nr = 10
 
 # READ DATA
 dataset, gene_names = load_OMICS_dataset(PPI,FEATS,TARG,True,950)
@@ -136,7 +139,7 @@ load_model = False
 #s2v_test_dataset = convert_to_s2vgraph(test_dataset)
 #s2v_train_dataset, s2v_test_dataset = train_test_split(s2v_dataset, test_size=0.2, random_state=123)
 
-epoch_nr = 10
+
 
 input_dim = no_of_features
 n_classes = 2
