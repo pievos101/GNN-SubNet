@@ -25,13 +25,14 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-### KIDNEY ------------------------- #
-LOC = "/home/bastian/LinkedOmics/KIRC-RANDOM"
+### INPUT ------------------------- #
+LOC   = "/home/bastian/LinkedOmics/KIRC-RANDOM"
+PPI   = f'{LOC}/KIDNEY_RANDOM_PPI.txt'
+FEATS = [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
+TARG  = f'{LOC}/KIDNEY_RANDOM_TARGET.txt'
 
-#KIRC-RANDOM MULTI-OMICS
-dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
-                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
-                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt', True, 950)
+# READ DATA
+dataset, gene_names = load_OMICS_dataset(PPI,FEATS,TARG,True,950)
 
 # Check whether graph is connected 
 check = check_if_graph_is_connected(dataset[0].edge_index)
@@ -40,17 +41,14 @@ print("Graph is connected ", check)
 if check == False:
 
     print("Calculate subgraph ...")
-    #KIRC-RANDOM MULTI-OMICS
-    dataset, gene_names = load_OMICS_dataset(f'{LOC}/KIDNEY_RANDOM_PPI.txt', 
-                                [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt'], 
-                                 f'{LOC}/KIDNEY_RANDOM_TARGET.txt', False, 950)
+    dataset, gene_names = load_OMICS_dataset(PPI,FEATS,TARG,False,950)
 
 check = check_if_graph_is_connected(dataset[0].edge_index)
 print("Graph is connected ", check)
 
 print('\n')
 print('##################')
-print("DATASET LOADED")
+print("# DATASET LOADED #")
 print('##################')
 print('\n')
 
