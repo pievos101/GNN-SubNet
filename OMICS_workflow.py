@@ -1,6 +1,7 @@
 import numpy as np
 import random
-from scipy.sparse.extract import find
+#from scipy.sparse.extract import find
+from scipy.sparse import find
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
