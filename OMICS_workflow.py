@@ -14,6 +14,7 @@ from pathlib import Path
 import copy
 from tqdm import tqdm
 import os
+#from collections.abc import Mapping
 
 from torch_geometric.data.data import Data
 
@@ -26,17 +27,26 @@ from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
 
-### INPUT ------------------------- #
-LOC   = "/home/bastian/LinkedOmics/KIRC-RANDOM"
-PPI   = f'{LOC}/KIDNEY_RANDOM_PPI.txt'
-FEATS = [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
-#FEATS = [f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']#, f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
-TARG  = f'{LOC}/KIDNEY_RANDOM_TARGET.txt'
-
-epoch_nr = 10
+### INPUT SYNTHETIC ------------------------- #
+LOC   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
+PPI   = f'{LOC}/NETWORK_synthetic.txt'
+FEATS = [f'{LOC}/FEATURES_synthetic.txt']
+TARG  = f'{LOC}/TARGET_synthetic.txt'
 
 # READ DATA
-dataset, gene_names = load_OMICS_dataset(PPI,FEATS,TARG,True,950)
+dataset, gene_names = load_OMICS_dataset(PPI, FEATS, TARG, True, 950, False)
+
+### INPUT TCGA DATA ------------------------- #
+#LOC   = "/home/bastian/LinkedOmics/KIRC-RANDOM"
+#PPI   = f'{LOC}/KIDNEY_RANDOM_PPI.txt'
+#FEATS = [f'{LOC}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
+#FEATS = [f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']#, f'{LOC}/KIDNEY_RANDOM_Methy_FEATURES.txt']
+#TARG  = f'{LOC}/KIDNEY_RANDOM_TARGET.txt'
+
+# READ DATA
+#dataset, gene_names = load_OMICS_dataset(PPI, FEATS, TARG, True, 950, True)
+
+epoch_nr = 10
 
 # Check whether graph is connected 
 check = check_if_graph_is_connected(dataset[0].edge_index)

@@ -383,7 +383,7 @@ def load_OMICS_dataset_old(edge_path="", feat_paths=[], survival_path="", subgra
 
 
 # In case graph may not be connected
-def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=True, threshold=950):
+def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=True, threshold=950, normalize=True):
     """
     Loads OMICS dataset with given edge, features, and survival paths. Returns formatted dataset for further usage
     :param edge_path: String with path to file with edges
@@ -400,12 +400,16 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
     for path in feat_paths:
         feats.append(pd.read_csv(path, delimiter=' '))
 
+    #print(1)
+    #print(feats)
     # Read in the network    
     ppi_path = edge_path
     ppi = pd.read_csv(ppi_path, delimiter=" ")
     
+    #print(2)
+    #print(ppi)
     # added just for reduced number of edges - cut off
-    ppi = ppi[ppi.combined_score >= threshold] # TODO put that as a param
+    ppi = ppi[ppi.combined_score >= threshold] 
 
     protein1 = list(set(ppi[ppi.columns.values[0]]))
     protein2 = list(set(ppi[ppi.columns.values[1]]))
@@ -413,12 +417,17 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
     proteins = list(set(protein1))
     # proteins contains the reduced PPI proteins
 
+    #print(3)
+    #print(proteins)
     # find feature columns with NA values
     nans = []
     for feat in feats:
         nans.extend(feat.columns[feat.isna().any()].tolist())
     nans = list(set(nans))
     # nans contains the genes with NA entries
+
+    #print(4)
+    #print(nans)
 
     for i in range(len(feats)):
         # get feature columns which are withon the PPI
@@ -427,11 +436,14 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
         feats[i] = feats[i][feats[i].columns.difference(nans)]
 
     # feats is a harmonized feature matrix
-
+    #print(5)
+    #print(feats)
     # Now harmonize the PPI network
          
     proteins = list(set(proteins) & set(feats[0].columns.values))
 
+    #print(6)
+    #print(proteins)
     # proteins are the proteins which are in feat and ppi
 
     # old_cols are gene names
@@ -452,6 +464,7 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
     ppi = ppi[ppi[ppi.columns.values[0]].isin(old_cols)]
     ppi = ppi[ppi[ppi.columns.values[1]].isin(old_cols)]
 
+    #print(ppi)
     # convert genes to node ids
     ppi[ppi.columns.values[0]] = ppi[ppi.columns.values[0]].map(col_pairs)
     ppi[ppi.columns.values[1]] = ppi[ppi.columns.values[1]].map(col_pairs)    
@@ -460,6 +473,7 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
 
     graphs = []
     edge_index = ppi[[ppi.columns.values[0], ppi.columns.values[1]]].to_numpy()
+    #print(edge_index)
     # convert to a proper format and sort
     edge_index = np.array(sorted(edge_index, key = lambda x: (x[0], x[1]))).T
 
@@ -540,11 +554,13 @@ def load_OMICS_dataset(edge_path="", feat_paths=[], survival_path="", connected=
     np.savetxt(f'{edge_path[:last_idx]}/edge_index.txt', edge_index, fmt='%d')
 
     temp = np.stack(feats, axis=-1)
-    new_temp = []
-    for item in temp:
-        new_temp.append(minmax_scale(item))
     
-    temp = np.array(new_temp)
+    if normalize ==True:
+        new_temp = []
+        for item in temp:
+            new_temp.append(minmax_scale(item))
+    
+        temp = np.array(new_temp)
 
     survival = pd.read_csv(survival_path, delimiter=' ')
     survival_values = survival.to_numpy()
