@@ -18,12 +18,10 @@ pip install GNNSubNet
 
 ## Usage
 
-First import GNNSubNet and create a GNNSubNet object:
-
 ```python
 import GNNSubNet as gnn
 
-# SYNTHETIC ------------------------- #
+# Synthetic data set  ------------------------- #
 loc   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
 ppi   = f'{LOC}/NETWORK_synthetic.txt'
 feats = [f'{LOC}/FEATURES_synthetic.txt']
