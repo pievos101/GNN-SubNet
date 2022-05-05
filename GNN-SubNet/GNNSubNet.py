@@ -73,6 +73,7 @@ class GNNSubNet(object):
         self.dataset = dataset
         self.gene_names = gene_names
         self.s2v_test_dataset = None 
+        self.edges =  np.transpose(np.array(dataset[0].edge_index))
 
         self.edge_mask = None
         self.node_mask = None
