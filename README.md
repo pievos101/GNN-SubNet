@@ -2,7 +2,27 @@
 
 # GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
 
+**Warning**: This is a development branch and installatio via pip is work in progress!
+
 ## https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1
+
+## Installation
+
+To install GNNSubNet run:
+
+```python
+pip install GNNSubNet
+```
+
+## Usage
+
+First import GNNSubNet and create a GNNSubNet object:
+
+```python
+import GNNSubNet as gnn
+
+g = gnn.GNNSubNet('/path/to/data/data.csv')
+```
 
 The main file is called 'OMICS_workflow.py'.
 Within that python file you find the function 'load_OMICS_dataset()'. 

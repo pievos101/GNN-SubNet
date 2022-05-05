@@ -167,6 +167,7 @@ cython_debug/
 ehthumbs.db
 Thumbs.db
 
+# R
 .RData
 .Rhistory
 

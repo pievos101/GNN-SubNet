@@ -1,5 +1,6 @@
 # GNNSubNet.py
 # Authors: Marcus D. Bloice <https://github.com/mdbloice>, Bastian Pfeifer <https://github.com/pievos101/>
+from dataset import load_OMICS_dataset
 
 class GNNSubNet(object):
     """
