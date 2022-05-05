@@ -24,22 +24,30 @@ First import GNNSubNet and create a GNNSubNet object:
 import GNNSubNet as gnn
 
 # SYNTHETIC ------------------------- #
-LOC   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
-PPI   = f'{LOC}/NETWORK_synthetic.txt'
-FEATS = [f'{LOC}/FEATURES_synthetic.txt']
-TARG  = f'{LOC}/TARGET_synthetic.txt'
+loc   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
+ppi   = f'{LOC}/NETWORK_synthetic.txt'
+feats = [f'{LOC}/FEATURES_synthetic.txt']
+targ  = f'{LOC}/TARGET_synthetic.txt'
 
-g = gnn.GNNSubNet(LOC, PPI, FEATS, TARG)
+# Read in the synthetic data
+g = gnn.GNNSubNet(loc, ppi, feats, targ, normalize=False)
 
+# Train the GNN classifier and validate performance on a test set
 g.train()
 
-g.gene_names
+# Check the performance of the classifier
 g.accuracy
 g.confusion_matrix
 
+# Run the Explainer with 4 iterations (10 is recommended)
 g.explain(4)
 
+# Edge and Node (Gene) Importances 
+g.gene_names
 g.edge_mask
+g.node_mask
+
+# Detected modules and their importances
 g.modules
 g.modules[0]
 
@@ -56,7 +64,7 @@ The rows of the feature matrices (e.g mRNA, and DNA Methylation) reflect the pat
 
 Please see the folder "datasets/TCGA" for some sample/example files.
 
-The mentioned OMICS workflow performs GNN classification, explanations, and community detection for disease subnetwork discovery. 
+The mentioned workflow performs GNN classification, explanations, and community detection for disease subnetwork discovery. 
 
 After exectution, importance scores are stored in the 'edge_mask.txt' file of the data folder. 
 

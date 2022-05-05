@@ -76,6 +76,7 @@ class GNNSubNet(object):
 
         self.edge_mask = None
         self.node_mask = None
+        self.node_mask_matrix = None
         self.modules = None
         self.module_importances = None
 
@@ -357,6 +358,7 @@ class GNNSubNet(object):
         # OUTPUT -- Save Edge Masks
         np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
         self.edge_mask = mean_em
+        self.node_mask_matrix = np.concatenate(NODE_MASK,1)
         self.node_mask = np.concatenate(NODE_MASK,1).mean(1)
 
         ###############################################
