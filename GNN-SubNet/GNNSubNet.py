@@ -33,7 +33,7 @@ class GNNSubNet(object):
     The class GNNSubSet represents the main user API for the
     GNN-SubNet package.
     """
-    def __init__(self, location, ppi=None, features=None, target=None, cutoff=950) -> None:
+    def __init__(self, location, ppi=None, features=None, target=None, cutoff=950, normalize=True) -> None:
 
         self.location = location
         self.ppi = ppi
@@ -50,7 +50,7 @@ class GNNSubNet(object):
         # Flags for internal use (hidden from user)
         self._explainer_run = False
     
-        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, True)        
+        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)        
         
          # Check whether graph is connected 
         check = check_if_graph_is_connected(dataset[0].edge_index)
@@ -59,7 +59,7 @@ class GNNSubNet(object):
         if check == False:
 
             print("Calculate subgraph ...")
-            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff)
+            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)
 
         check = check_if_graph_is_connected(dataset[0].edge_index)
         print("Graph is connected ", check)
@@ -75,6 +75,7 @@ class GNNSubNet(object):
         self.s2v_test_dataset = None 
 
         self.edge_mask = None
+        self.node_mask = None
         self.modules = None
         self.module_importances = None
 
@@ -334,6 +335,7 @@ class GNNSubNet(object):
         no_of_runs = n_runs
         lamda = 0.8 # not used!
         ems = []
+        NODE_MASK = list()
 
         for idx in range(no_of_runs):
             print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
@@ -341,6 +343,7 @@ class GNNSubNet(object):
             em = exp.explain_graph_modified_s2v(s2v_test_dataset, lamda)
             #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
             gnn_feature_masks = np.reshape(em, (len(em), -1))
+            NODE_MASK.append(np.array(gnn_feature_masks.sigmoid()))
             np.savetxt(f'{LOC}/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
             #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
             gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_index)
@@ -354,6 +357,7 @@ class GNNSubNet(object):
         # OUTPUT -- Save Edge Masks
         np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
         self.edge_mask = mean_em
+        self.node_mask = np.concatenate(NODE_MASK,1).mean(1)
 
         ###############################################
         # Perform Community Detection
