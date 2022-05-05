@@ -1,13 +1,39 @@
 # GNNSubNet.py
 # Authors: Marcus D. Bloice <https://github.com/mdbloice>, Bastian Pfeifer <https://github.com/pievos101/>
-from dataset import load_OMICS_dataset
+import numpy as np
+import random
+#from scipy.sparse.extract import find
+from scipy.sparse import find
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from torch.nn.modules import conv
+from torch_geometric import data
+from torch_geometric.data import DataLoader, Batch
+from pathlib import Path
+import copy
+from tqdm import tqdm
+import os
+#from collections.abc import Mapping
+
+from torch_geometric.data.data import Data
+
+from gnn_training_utils import check_if_graph_is_connected, pass_data_iteratively
+from dataset import generate, load_OMICS_dataset, convert_to_s2vgraph
+from gnn_explainer import GNNExplainer
+from graphcnn import GraphCNN
+
+from community_detection import find_communities
+from edge_importance import calc_edge_importance
 
 class GNNSubNet(object):
     """
     The class GNNSubSet represents the main user API for the
     GNN-SubNet package.
     """
-    def __init__(self, location, ppi=None, features=None, target=None) -> None:
+    def __init__(self, location, ppi=None, features=None, target=None, cutoff=950) -> None:
 
         self.location = location
         self.ppi = ppi
@@ -16,11 +42,14 @@ class GNNSubNet(object):
         self.dataset = None
         self.model = None
         self.gene_names = None
+        self.accuracy = None
+        self.confusion_matrix = None
+        self.test_loss = None
 
         # Flags for internal use (hidden from user)
         self._explainer_run = False
     
-        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, True)        
+        self.dataset, self.gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, True)        
             
     def summary(self):
         """
@@ -29,7 +58,7 @@ class GNNSubNet(object):
         for i in self.__dict__:
             print('%s: %s' % (i, self.__dict__[i]))
 
-    def train(self, epochs_nr = 10, shuffle=True, weights=None):
+    def train(self, epoch_nr = 10, shuffle=True, weights=None):
         """
         Train the GNN model on the data provided during initialisation.
         """
@@ -268,6 +297,10 @@ class GNNSubNet(object):
 
 
         self.model = 'Trained'
+        self.accuracy = accuracy
+        self.confusion_matrix = confusion_matrix_gnn
+        self.test_loss = test_loss
+
 
     def explain(self, n_runs, explainer_lambda=0.8, save_to_disk=False):
         """
