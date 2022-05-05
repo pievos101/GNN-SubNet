@@ -1,5 +1,6 @@
 # GNNSubNet.py
-# Authors: Marcus D. Bloice <https://github.com/mdbloice>, Bastian Pfeifer <https://github.com/pievos101/>
+# Authors: Bastian Pfeifer <https://github.com/pievos101>, Marcus D. Bloice <https://github.com/mdbloice>
+from urllib.parse import _NetlocResultMixinStr
 import numpy as np
 import random
 #from scipy.sparse.extract import find
@@ -16,6 +17,9 @@ from pathlib import Path
 import copy
 from tqdm import tqdm
 import os
+import requests
+import pandas as pd
+import io
 #from collections.abc import Mapping
 
 from torch_geometric.data.data import Data
@@ -49,10 +53,10 @@ class GNNSubNet(object):
 
         # Flags for internal use (hidden from user)
         self._explainer_run = False
-    
-        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)        
-        
-         # Check whether graph is connected 
+
+        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)
+
+         # Check whether graph is connected
         check = check_if_graph_is_connected(dataset[0].edge_index)
         print("Graph is connected ", check)
 
@@ -72,7 +76,7 @@ class GNNSubNet(object):
 
         self.dataset = dataset
         self.gene_names = gene_names
-        self.s2v_test_dataset = None 
+        self.s2v_test_dataset = None
 
         self.edge_mask = None
         self.node_mask = None
@@ -93,8 +97,8 @@ class GNNSubNet(object):
         """
         dataset = self.dataset
         gene_names = self.gene_names
-     
-       
+
+
         graphs_class_0_list = []
         graphs_class_1_list = []
         for graph in dataset:
@@ -112,11 +116,11 @@ class GNNSubNet(object):
         # [2.] Downsampling of the class that contains more elements ===========================================================
         # ########################################################################################################################
 
-        if graphs_class_0_len >= graphs_class_1_len: 
+        if graphs_class_0_len >= graphs_class_1_len:
             random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
             balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
 
-        if graphs_class_0_len < graphs_class_1_len: 
+        if graphs_class_0_len < graphs_class_1_len:
             random_graphs_class_1_list = random.sample(graphs_class_1_list, graphs_class_0_len)
             balanced_dataset_list = graphs_class_0_list + random_graphs_class_1_list
 
@@ -295,7 +299,7 @@ class GNNSubNet(object):
             if it == true_class_array[i]:
                 counter += 1
 
-        accuracy = counter/len(true_class_array) * 100 
+        accuracy = counter/len(true_class_array) * 100
         print("Accuracy: {}%".format(accuracy))
         print("Test loss {}".format(test_loss))
 
@@ -339,7 +343,7 @@ class GNNSubNet(object):
         NODE_MASK = list()
 
         for idx in range(no_of_runs):
-            print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
+            print(f'Explainer::Iteration {idx+1} of {no_of_runs}')
             exp = GNNExplainer(model, epochs=300)
             em = exp.explain_graph_modified_s2v(s2v_test_dataset, lamda)
             #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
@@ -351,7 +355,7 @@ class GNNSubNet(object):
             np.savetxt(f'{LOC}/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
             #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
             ems.append(gnn_edge_masks.sigmoid().numpy())
-            
+
         ems     = np.array(ems)
         mean_em = ems.mean(0)
 
@@ -386,9 +390,28 @@ class GNNSubNet(object):
         # Write gene_names to file
         textfile = open(f'{LOC}/gene_names.txt', "w")
         for element in gene_names:
-            listToStr = ''.join(map(str, element)) 
+            listToStr = ''.join(map(str, element))
             textfile.write(listToStr + "\n")
 
         textfile.close()
 
         self._explainer_run = True
+
+    def download_TCGA(self, save_to_disk=False):
+        base_url = 'https://raw.githubusercontent.com/pievos101/GNN-SubNet/python-package/TCGA/' # CHANGE THIS URL WHEN BRANCH MERGES TO MAIN
+
+        KIDNEY_RANDOM_Methy_FEATURES_filename = 'KIDNEY_RANDOM_Methy_FEATURES.txt'
+        KIDNEY_RANDOM_PPI_filename = 'KIDNEY_RANDOM_PPI.txt'
+        KIDNEY_RANDOM_TARGET_filename = 'KIDNEY_RANDOM_TARGET.txt'
+        KIDNEY_RANDOM_mRNA_FEATURES_filename = 'KIDNEY_RANDOM_mRNA_FEATURES.txt'
+
+        # For testing let's use KIDNEY_RANDOM_Methy_FEATURES and store in memory.
+        raw = requests.get(base_url + KIDNEY_RANDOM_Methy_FEATURES_filename, stream=True)
+
+        self.KIDNEY_RANDOM_Methy_FEATURES = pd.read_csv(io.BytesIO(raw.content), delimiter=' ')
+
+        # Do we want it as a numpy array?
+        self.KIDNEY_RANDOM_Methy_FEATURES = np.asarray(self.KIDNEY_RANDOM_Methy_FEATURES)
+
+        # Clear memory
+        raw = None
