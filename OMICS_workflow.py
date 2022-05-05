@@ -150,7 +150,6 @@ load_model = False
 #s2v_train_dataset, s2v_test_dataset = train_test_split(s2v_dataset, test_size=0.2, random_state=123)
 
 
-
 input_dim = no_of_features
 n_classes = 2
 
