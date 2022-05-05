@@ -2,9 +2,11 @@
 
 # GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
 
-**Warning**: This is a development branch and installatio via pip is work in progress!
+**Warning**: This is a development branch and installation via pip is work in progress!
 
-## https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1
+## Paper 
+
+The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1> 
 
 ## Installation
 
