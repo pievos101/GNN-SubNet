@@ -42,6 +42,9 @@ g.explain(4)
 
 # Edge and Node (Gene) Importances 
 g.gene_names
+g.edges
+
+# Importances
 g.edge_mask
 g.node_mask
 
