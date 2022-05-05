@@ -21,7 +21,28 @@ First import GNNSubNet and create a GNNSubNet object:
 ```python
 import GNNSubNet as gnn
 
-g = gnn.GNNSubNet('/path/to/data/data.csv')
+# SYNTHETIC ------------------------- #
+LOC   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
+PPI   = f'{LOC}/NETWORK_synthetic.txt'
+FEATS = [f'{LOC}/FEATURES_synthetic.txt']
+TARG  = f'{LOC}/TARGET_synthetic.txt'
+
+g = gnn.GNNSubNet(LOC, PPI, FEATS, TARG)
+
+g.train()
+
+g.gene_names
+g.accuracy
+g.confusion_matrix
+
+g.explain(4)
+
+g.edge_mask
+g.modules
+g.modules[0]
+
+g.module_importances
+
 ```
 
 The main file is called 'OMICS_workflow.py'.
