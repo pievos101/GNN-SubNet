@@ -40,6 +40,7 @@ class GNNSubNet(object):
         self.features = features
         self.target = target
         self.dataset = None
+        self.model_status = None
         self.model = None
         self.gene_names = None
         self.accuracy = None
@@ -49,8 +50,34 @@ class GNNSubNet(object):
         # Flags for internal use (hidden from user)
         self._explainer_run = False
     
-        self.dataset, self.gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, True)        
-            
+        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, True)        
+        
+         # Check whether graph is connected 
+        check = check_if_graph_is_connected(dataset[0].edge_index)
+        print("Graph is connected ", check)
+
+        if check == False:
+
+            print("Calculate subgraph ...")
+            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff)
+
+        check = check_if_graph_is_connected(dataset[0].edge_index)
+        print("Graph is connected ", check)
+
+        print('\n')
+        print('##################')
+        print("# DATASET LOADED #")
+        print('##################')
+        print('\n')
+
+        self.dataset = dataset
+        self.gene_names = gene_names
+        self.s2v_test_dataset = None 
+
+        self.edge_mask = None
+        self.modules = None
+        self.module_importances = None
+
     def summary(self):
         """
         Print a summary for the GNNSubSet object's current state.
@@ -65,24 +92,7 @@ class GNNSubNet(object):
         dataset = self.dataset
         gene_names = self.gene_names
      
-        # Check whether graph is connected 
-        check = check_if_graph_is_connected(dataset[0].edge_index)
-        print("Graph is connected ", check)
-
-        if check == False:
-
-            print("Calculate subgraph ...")
-            dataset, gene_names = load_OMICS_dataset(PPI,FEATS,TARG,False,950)
-
-        check = check_if_graph_is_connected(dataset[0].edge_index)
-        print("Graph is connected ", check)
-
-        print('\n')
-        print('##################')
-        print("# DATASET LOADED #")
-        print('##################')
-        print('\n')
-
+       
         graphs_class_0_list = []
         graphs_class_1_list = []
         for graph in dataset:
@@ -296,14 +306,83 @@ class GNNSubNet(object):
         model.train()
 
 
-        self.model = 'Trained'
+        self.model_status = 'Trained'
+        self.model = model
         self.accuracy = accuracy
         self.confusion_matrix = confusion_matrix_gnn
         self.test_loss = test_loss
+        self.s2v_test_dataset = s2v_test_dataset
 
-
-    def explain(self, n_runs, explainer_lambda=0.8, save_to_disk=False):
+    def explain(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
         """
         Explain the model's results.
         """
+
+        ############################################
+        # Run the Explainer
+        ############################################
+        LOC = self.location
+        model = self.model
+        s2v_test_dataset = self.s2v_test_dataset
+        dataset = self.dataset
+        gene_names = self.gene_names
+
+        print("")
+        print("------- Run the Explainer -------")
+        print("")
+
+        no_of_runs = n_runs
+        lamda = 0.8 # not used!
+        ems = []
+
+        for idx in range(no_of_runs):
+            print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
+            exp = GNNExplainer(model, epochs=300)
+            em = exp.explain_graph_modified_s2v(s2v_test_dataset, lamda)
+            #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
+            gnn_feature_masks = np.reshape(em, (len(em), -1))
+            np.savetxt(f'{LOC}/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_index)
+            np.savetxt(f'{LOC}/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            ems.append(gnn_edge_masks.sigmoid().numpy())
+            
+        ems     = np.array(ems)
+        mean_em = ems.mean(0)
+
+        # OUTPUT -- Save Edge Masks
+        np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
+        self.edge_mask = mean_em
+
+        ###############################################
+        # Perform Community Detection
+        ###############################################
+
+        avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
+        self.modules = coms
+        self.module_importances = avg_mask
+
+        np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+
+        filePath = f'{LOC}/communities.txt'
+
+        if os.path.exists(filePath):
+            os.remove(filePath)
+
+        f = open(f'{LOC}/communities.txt', "a")
+        for idx in range(len(avg_mask)):
+            s_com = ','.join(str(e) for e in coms[idx])
+            f.write(s_com + '\n')
+
+        f.close()
+
+        # Write gene_names to file
+        textfile = open(f'{LOC}/gene_names.txt', "w")
+        for element in gene_names:
+            listToStr = ''.join(map(str, element)) 
+            textfile.write(listToStr + "\n")
+
+        textfile.close()
+
         self._explainer_run = True
