@@ -5,6 +5,7 @@
 ## https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1
 
 Note, a python package is under development. See the python-package branch.
+https://github.com/pievos101/GNN-SubNet/tree/python-package
 
 Meanwhile, you can follow the following steps to get GNN-SubNet running.
 
