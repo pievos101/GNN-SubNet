@@ -6,7 +6,7 @@
 
 ## Paper 
 
-The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v>
+The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1> 
 
 ## Installation
 
