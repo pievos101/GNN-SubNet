@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='GNNSubNet',
-    packages=['GNN-SubNet'],
+    packages=['GNNSubNet'],
     version='0.1.1',
     author="Bastian Pfeifer",
     author_email="bastian.pfeifer@medunigraz.at",
@@ -19,7 +19,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
@@ -27,20 +26,20 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    #install_requires=[
-    #    'torch',
-    #    'tqdm',
-    #    'numpy',
-    #    'igraph',
-    #    'scipy',
-    #    'scikit-learn',
-    #    'pandas',
-    #    'requests',
-    #    'networkx',
-    #    'torch-geometric',
-    #    'matplotlib',
-    #    'wheel'
-    #],
+    install_requires=[
+        'torch',
+        'tqdm',
+        'numpy',
+        'igraph',
+        'scipy',
+        'scikit-learn',
+        'pandas',
+        'requests',
+        'networkx',
+        'torch-geometric',
+        'matplotlib',
+        'wheel'
+    ],
     include_package_data=True,  # Alternatively add files to MANIFEST.in
     package_data={'': ['datasets/synthetic/*.txt']}
 )
