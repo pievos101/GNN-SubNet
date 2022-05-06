@@ -68,11 +68,11 @@ class GNNSubNet(object):
         check = check_if_graph_is_connected(dataset[0].edge_index)
         print("Graph is connected ", check)
 
-        print('\n')
+        #print('\n')
         print('##################')
         print("# DATASET LOADED #")
         print('##################')
-        print('\n')
+        #print('\n')
 
         self.dataset = dataset
         self.gene_names = gene_names
@@ -114,7 +114,7 @@ class GNNSubNet(object):
         print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
 
         ########################################################################################################################
-        # [2.] Downsampling of the class that contains more elements ===========================================================
+        # Downsampling of the class that contains more elements ===========================================================
         # ########################################################################################################################
 
         if graphs_class_0_len >= graphs_class_1_len:
@@ -312,7 +312,6 @@ class GNNSubNet(object):
 
         model.train()
 
-
         self.model_status = 'Trained'
         self.model = model
         self.accuracy = accuracy
@@ -328,6 +327,7 @@ class GNNSubNet(object):
         ############################################
         # Run the Explainer
         ############################################
+        
         LOC = self.location
         model = self.model
         s2v_test_dataset = self.s2v_test_dataset

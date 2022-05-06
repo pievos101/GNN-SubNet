@@ -18,6 +18,8 @@ pip install GNNSubNet
 
 ## Usage
 
+### Synthetic Barabasi Networks
+
 ```python
 import GNNSubNet as gnn
 
@@ -55,6 +57,8 @@ g.modules[0]
 g.module_importances
 
 ```
+
+### TCGA multi-omics kidney cancer
  
 The GNNSubNet initialization function  expects the PPI network as an input, the feature matrices, as well as the outcome class. The input needs to be adjusted by the user.
 
