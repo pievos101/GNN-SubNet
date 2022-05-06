@@ -32,6 +32,9 @@ targ  = f'{LOC}/TARGET_synthetic.txt'
 # Read in the synthetic data
 g = gnn.GNNSubNet(loc, ppi, feats, targ, normalize=False)
 
+# Get some genearl information about the data dimension
+g.summary()
+
 # Train the GNN classifier and validate performance on a test set
 g.train()
 

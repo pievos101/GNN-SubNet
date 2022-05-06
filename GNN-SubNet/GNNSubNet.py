@@ -89,8 +89,13 @@ class GNNSubNet(object):
         """
         Print a summary for the GNNSubSet object's current state.
         """
-        for i in self.__dict__:
-            print('%s: %s' % (i, self.__dict__[i]))
+        print("")
+        print("Number of nodes:", len(self.dataset[0].x))
+        print("Number of edges:", self.edges.shape[0])
+        print("Number of modalities:",self.dataset[0].x.shape[1])
+
+        #for i in self.__dict__:
+        #    print('%s: %s' % (i, self.__dict__[i]))
 
     def train(self, epoch_nr = 10, shuffle=True, weights=None):
         """
