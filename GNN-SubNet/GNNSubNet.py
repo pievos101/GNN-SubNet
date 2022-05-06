@@ -332,7 +332,7 @@ class GNNSubNet(object):
         ############################################
         # Run the Explainer
         ############################################
-        
+
         LOC = self.location
         model = self.model
         s2v_test_dataset = self.s2v_test_dataset
@@ -403,7 +403,13 @@ class GNNSubNet(object):
 
         self._explainer_run = True
 
-    def download_TCGA(self, save_to_disk=False):
+    def download_TCGA(self, save_to_disk=False) -> None:
+        """
+        Warning: Currently not implemented!
+
+        Download some sample TCGA data. Running this function will download
+        approximately 100MB of data.
+        """
         base_url = 'https://raw.githubusercontent.com/pievos101/GNN-SubNet/python-package/TCGA/' # CHANGE THIS URL WHEN BRANCH MERGES TO MAIN
 
         KIDNEY_RANDOM_Methy_FEATURES_filename = 'KIDNEY_RANDOM_Methy_FEATURES.txt'
@@ -414,10 +420,9 @@ class GNNSubNet(object):
         # For testing let's use KIDNEY_RANDOM_Methy_FEATURES and store in memory.
         raw = requests.get(base_url + KIDNEY_RANDOM_Methy_FEATURES_filename, stream=True)
 
-        self.KIDNEY_RANDOM_Methy_FEATURES = pd.read_csv(io.BytesIO(raw.content), delimiter=' ')
+        self.KIDNEY_RANDOM_Methy_FEATURES = np.asarray(pd.read_csv(io.BytesIO(raw.content), delimiter=' '))
 
-        # Do we want it as a numpy array?
-        self.KIDNEY_RANDOM_Methy_FEATURES = np.asarray(self.KIDNEY_RANDOM_Methy_FEATURES)
-
-        # Clear memory
+        # Clear some memory
         raw = None
+
+        return None
