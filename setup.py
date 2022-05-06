@@ -28,17 +28,18 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'torch>=1.11.0',
-        'tqdm>=4.9.0',
-        'numpy>=1.22.3',
-        'igraph>=0.9.10',
-        'scipy>=1.8.0',
-        'scikit-learn>=1.0.2',
-        'pandas>=1.4.2',
-        'requests>=2.25.1',
-        'networkx>=2.8',
-        'torch-geometric>=2.0.4',
-        'matplotlib>=3.5.1'
+        'torch',
+        'tqdm',
+        'numpy',
+        'igraph',
+        'scipy',
+        'scikit-learn',
+        'pandas',
+        'requests',
+        'networkx',
+        'torch-geometric',
+        'matplotlib',
+        'wheel'
     ],
     include_package_data=True,  # Alternatively add files to MANIFEST.in
     package_data={'': ['datasets/synthetic/*.txt']}
