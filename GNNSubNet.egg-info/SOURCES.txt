@@ -25,5 +25,4 @@ GNN-SubNet/datasets/synthetic/TARGET_synthetic.txt
 GNNSubNet.egg-info/PKG-INFO
 GNNSubNet.egg-info/SOURCES.txt
 GNNSubNet.egg-info/dependency_links.txt
-GNNSubNet.egg-info/requires.txt
 GNNSubNet.egg-info/top_level.txt

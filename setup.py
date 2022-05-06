@@ -27,20 +27,20 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    install_requires=[
-        'torch',
-        'tqdm',
-        'numpy',
-        'igraph',
-        'scipy',
-        'scikit-learn',
-        'pandas',
-        'requests',
-        'networkx',
-        'torch-geometric',
-        'matplotlib',
-        'wheel'
-    ],
+    #install_requires=[
+    #    'torch',
+    #    'tqdm',
+    #    'numpy',
+    #    'igraph',
+    #    'scipy',
+    #    'scikit-learn',
+    #    'pandas',
+    #    'requests',
+    #    'networkx',
+    #    'torch-geometric',
+    #    'matplotlib',
+    #    'wheel'
+    #],
     include_package_data=True,  # Alternatively add files to MANIFEST.in
     package_data={'': ['datasets/synthetic/*.txt']}
 )

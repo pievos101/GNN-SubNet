@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.1
 Name: GNNSubNet
 Version: 0.1.1
 Summary: Disease Subnetwork Detection with Explainable Graph Neural Networks
@@ -6,6 +6,7 @@ Home-page: https://github.com/pievos101/GNN-SubNet
 Author: Bastian Pfeifer
 Author-email: bastian.pfeifer@medunigraz.at
 License: MIT
+Description: Disease Subnetwork Detection with Explainable Graph Neural Networks
 Keywords: graph-neural-networks,disease-networks,explainable-ai
 Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
@@ -22,7 +23,3 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
-License-File: LICENSE
-
-Disease Subnetwork Detection with Explainable Graph Neural Networks
-
