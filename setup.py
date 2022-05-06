@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='GNNSubNet',
-    packages=['GNNSubNet'],
+    packages=['GNN-SubNet'],
     version='0.1.0',
     author="Bastian Pfeifer",
     author_email="bastian.pfeifer@medunigraz.at",
@@ -32,6 +32,6 @@ setup(
         'tqdm>=4.9.0',
         'numpy>=1.22.3'
     ],
-    include_package_data=True,
+    include_package_data=True,  # Alternatively add files to MANIFEST.in
     package_data={'': ['datasets/synthetic/*.txt']}
 )
