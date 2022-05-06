@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='GNNSubNet',
     packages=['GNN-SubNet'],
-    version='0.1.0',
+    version='0.1.1',
     author="Bastian Pfeifer",
     author_email="bastian.pfeifer@medunigraz.at",
     description='Disease Subnetwork Detection with Explainable Graph Neural Networks',
@@ -33,7 +33,7 @@ setup(
         'numpy>=1.22.3',
         'igraph>=0.9.10',
         'scipy>=1.8.0',
-        'sklearn>=1.0.2',
+        'scikit-learn>=1.0.2',
         'pandas>=1.4.2',
         'requests>=2.25.1',
         'networkx>=2.8',
