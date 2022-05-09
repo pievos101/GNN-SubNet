@@ -98,6 +98,7 @@ g.node_mask
 # Detected modules and their importances
 g.modules
 g.modules[0]
+g.gene_names[g.modules[0]]
 
 g.module_importances
 
