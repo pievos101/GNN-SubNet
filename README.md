@@ -17,6 +17,8 @@ pip install GNNSubNet
 
 ### Synthetic Barabasi Networks
 
+The datasets can be found here: https://github.com/pievos101/GNN-SubNet/tree/main/GNNSubNet/datasets/synthetic
+
 ```python
 from GNNSubNet import GNNSubNet as gnn
 
@@ -59,6 +61,10 @@ g.module_importances
 ```
 
 ### TCGA multi-omics kidney cancer
+The datasets can be found here:
+https://github.com/pievos101/GNN-SubNet/tree/main/TCGA
+
+
 ```python
 
 ```
