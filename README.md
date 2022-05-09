@@ -66,9 +66,11 @@ The datasets can be found here:
 https://github.com/pievos101/GNN-SubNet/tree/main/TCGA
 
 ```python
+from GNNSubNet import GNNSubNet as gnn
 
 loc   = "/home/bastian/GitHub/GNN-SubNet/TCGA"
 ppi   = f'{loc}/KIDNEY_RANDOM_PPI.txt'
+#feats = [f'{loc}/KIDNEY_RANDOM_Methy_FEATURES.txt']
 feats = [f'{loc}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{loc}/KIDNEY_RANDOM_Methy_FEATURES.txt']
 targ  = f'{loc}/KIDNEY_RANDOM_TARGET.txt'
 

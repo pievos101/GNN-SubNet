@@ -63,7 +63,7 @@ class GNNSubNet(object):
         if check == False:
 
             print("Calculate subgraph ...")
-            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)
+            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, False, cutoff, normalize)
 
         check = check_if_graph_is_connected(dataset[0].edge_index)
         print("Graph is connected ", check)
@@ -97,10 +97,11 @@ class GNNSubNet(object):
         #for i in self.__dict__:
         #    print('%s: %s' % (i, self.__dict__[i]))
 
-    def train(self, epoch_nr = 10, shuffle=True, weights=None):
+    def train(self, epoch_nr = 10, shuffle=True, weights=False):
         """
         Train the GNN model on the data provided during initialisation.
         """
+        use_weights = False
 
         dataset = self.dataset
         gene_names = self.gene_names
@@ -169,16 +170,12 @@ class GNNSubNet(object):
         #for item in dataset:
         #    count += item.y.item()
 
-        use_weights = False
-
         #weight = torch.tensor([count/len(dataset), 1-count/len(dataset)])
         #print(count/len(dataset), 1-count/len(dataset))
 
         model_path = 'omics_model.pth'
         no_of_features = dataset[0].x.shape[1]
         nodes_per_graph_nr = dataset[0].x.shape[0]
-
-        load_model = False
 
         #print(len(dataset), len(dataset)*0.2)
         #s2v_dataset = convert_to_s2vgraph(dataset)
@@ -193,6 +190,7 @@ class GNNSubNet(object):
         model = GraphCNN(5, 2, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
         opt = torch.optim.Adam(model.parameters(), lr = 0.01)
 
+        load_model = False
         if load_model:
             checkpoint = torch.load(model_path)
             model.load_state_dict(checkpoint['state_dict'])
