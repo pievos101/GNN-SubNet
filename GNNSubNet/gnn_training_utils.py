@@ -11,6 +11,8 @@ import copy
 import numpy as np
 import torch
 
+#class gnn_training_utils:
+
 def check_if_graph_is_connected(edge_index):
     if type(edge_index) == torch.Tensor:
         edge_index = edge_index.numpy()

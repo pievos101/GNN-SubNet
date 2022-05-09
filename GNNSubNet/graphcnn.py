@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 import sys
 sys.path.append("models/")
-from mlp import MLP
+from .mlp import MLP
 
 class GraphCNN(nn.Module):
     def __init__(self, num_layers, num_mlp_layers, input_dim, hidden_dim, output_dim, final_dropout, learn_eps, graph_pooling_type, neighbor_pooling_type, device):
