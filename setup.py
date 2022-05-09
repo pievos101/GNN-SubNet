@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='GNNSubNet',
     packages=['GNNSubNet'],
-    version='0.1.1',
+    version='0.1.5',
     author="Bastian Pfeifer",
     author_email="bastian.pfeifer@medunigraz.at",
     description='Disease Subnetwork Detection with Explainable Graph Neural Networks',
@@ -38,7 +38,8 @@ setup(
         'networkx',
         'torch-geometric',
         'matplotlib',
-        'wheel'
+        'wheel', 
+        'dgl'
     ],
     include_package_data=True,  # Alternatively add files to MANIFEST.in
     package_data={'': ['datasets/synthetic/*.txt']}

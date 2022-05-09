@@ -24,13 +24,13 @@ import io
 
 from torch_geometric.data.data import Data
 
-from gnn_training_utils import check_if_graph_is_connected, pass_data_iteratively
-from dataset import generate, load_OMICS_dataset, convert_to_s2vgraph
-from gnn_explainer import GNNExplainer
-from graphcnn import GraphCNN
+from .gnn_training_utils import check_if_graph_is_connected, pass_data_iteratively
+from .dataset import generate, load_OMICS_dataset, convert_to_s2vgraph
+from .gnn_explainer import GNNExplainer
+from .graphcnn import GraphCNN
 
-from community_detection import find_communities
-from edge_importance import calc_edge_importance
+from .community_detection import find_communities
+from .edge_importance import calc_edge_importance
 
 class GNNSubNet(object):
     """
