@@ -2,18 +2,6 @@
 
 # GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
 
-**Warning**: This is a development branch and installation via pip is work in progress!
-
-<<<<<<< HEAD
-Note, a python package is under development. See the python-package branch.
-https://github.com/pievos101/GNN-SubNet/tree/python-package
-
-Meanwhile, you can follow the following steps to get GNN-SubNet running.
-
-The main file is called 'OMICS_workflow.py'.
-Within that python file you find the function 'load_OMICS_dataset()'. 
-It expects the PPI network as an input, the feature matrices, as well as the outcome class. The input needs to be adjusted by the user.
-=======
 ## Paper 
 
 The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1> 
@@ -25,7 +13,6 @@ To install GNNSubNet run:
 ```python
 pip install GNNSubNet
 ```
-
 ## Usage
 
 ### Synthetic Barabasi Networks
@@ -72,9 +59,13 @@ g.module_importances
 ```
 
 ### TCGA multi-omics kidney cancer
- 
+```python
+
+```
+
+## Further informations
+
 The GNNSubNet initialization function  expects the PPI network as an input, the feature matrices, as well as the outcome class. The input needs to be adjusted by the user.
->>>>>>> python-package
 
 The PPI network consists of three columns.
 The first two columns reflect the edges between the nodes (gene names), the third column is the confidence score of the specified edge. The range of this score is [0,999], where high scores mean high confidence.
