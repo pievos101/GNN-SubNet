@@ -23,7 +23,7 @@ The datasets can be found here: https://github.com/pievos101/GNN-SubNet/tree/mai
 from GNNSubNet import GNNSubNet as gnn
 
 # Synthetic data set  ------------------------- #
-loc   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
+loc   = "/home/bastian/GitHub/GNN-SubNet/GNNSubNet/datasets/synthetic"
 ppi   = f'{loc}/NETWORK_synthetic.txt'
 feats = [f'{loc}/FEATURES_synthetic.txt']
 targ  = f'{loc}/TARGET_synthetic.txt'
@@ -64,8 +64,26 @@ g.module_importances
 The datasets can be found here:
 https://github.com/pievos101/GNN-SubNet/tree/main/TCGA
 
-
 ```python
+
+loc   = "/home/bastian/GitHub/GNN-SubNet/TCGA"
+ppi   = f'{loc}/KIDNEY_RANDOM_PPI.txt'
+feats = [f'{loc}/KIDNEY_RANDOM_mRNA_FEATURES.txt', f'{loc}/KIDNEY_RANDOM_Methy_FEATURES.txt']
+targ  = f'{loc}/KIDNEY_RANDOM_TARGET.txt'
+
+# Load the multi-omics data 
+g = gnn.GNNSubNet(loc, ppi, feats, targ)
+
+# Train the GNN classifier and validate performance on a test set
+g.train()
+
+# Check the performance of the classifier
+g.accuracy
+g.confusion_matrix
+
+# Run the Explainer with 4 iterations (10 is recommended)
+g.explain(4)
+
 
 ```
 
