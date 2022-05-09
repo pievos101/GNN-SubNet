@@ -13,11 +13,11 @@ from torch._C import Graph
 from torch_geometric.data.data import Data
 from sklearn.preprocessing import minmax_scale
 
-from gnn_training_utils import _plain_bfs
-from features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data, gen_data_community
-from graph_dataset import GraphDataset
-from s2vgraph import S2VGraph
-from gnn_training_utils import check_if_graph_is_connected
+from .gnn_training_utils import _plain_bfs
+from .features_computation import get_genes, get_genes_bernoulli, sigmoid, gen_syn_data, gen_data_community
+from .graph_dataset import GraphDataset
+from .s2vgraph import S2VGraph
+from .gnn_training_utils import check_if_graph_is_connected
 
 def generate_community(graphs_nr: int, nodes_per_graph_nr: int, sigma, graph, node_indices, no_of_features):
     edges = torch.zeros(size=(2,len(graph.edges())), dtype=torch.long)

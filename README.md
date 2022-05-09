@@ -21,13 +21,13 @@ pip install GNNSubNet
 ### Synthetic Barabasi Networks
 
 ```python
-import GNNSubNet as gnn
+from GNNSubNet import GNNSubNet as gnn
 
 # Synthetic data set  ------------------------- #
 loc   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
-ppi   = f'{LOC}/NETWORK_synthetic.txt'
-feats = [f'{LOC}/FEATURES_synthetic.txt']
-targ  = f'{LOC}/TARGET_synthetic.txt'
+ppi   = f'{loc}/NETWORK_synthetic.txt'
+feats = [f'{loc}/FEATURES_synthetic.txt']
+targ  = f'{loc}/TARGET_synthetic.txt'
 
 # Read in the synthetic data
 g = gnn.GNNSubNet(loc, ppi, feats, targ, normalize=False)

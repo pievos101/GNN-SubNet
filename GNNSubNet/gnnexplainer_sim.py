@@ -13,15 +13,15 @@ from torch_geometric.nn import conv
 from tqdm import tqdm
 
 
-from gnn_training_utils import pass_data_iteratively
-from dataset import generate, save_results, load_syn_dataset, convert_to_s2vgraph
-from gnn_explainer import GNNExplainer as gnnexp
-from gnn_explainer import GNNExplainer
-from gnn_training_utils import check_if_graph_is_connected
-from community_detection import find_communities
-from edge_importance import calc_edge_importance
+from .gnn_training_utils import pass_data_iteratively
+from .dataset import generate, save_results, load_syn_dataset, convert_to_s2vgraph
+from .gnn_explainer import GNNExplainer as gnnexp
+from .gnn_explainer import GNNExplainer
+from .gnn_training_utils import check_if_graph_is_connected
+from .community_detection import find_communities
+from .edge_importance import calc_edge_importance
 
-from graphcnn import GraphCNN
+from .graphcnn import GraphCNN
 
 nodes_per_graph_nr = 30
 graph = nx.generators.random_graphs.barabasi_albert_graph(nodes_per_graph_nr, 1)
