@@ -26,7 +26,6 @@ from graphcnn import GraphCNN
 from community_detection import find_communities
 from edge_importance import calc_edge_importance
 
-
 ### INPUT SYNTHETIC ------------------------- #
 #LOC   = "/home/bastian/GNNSubNet-Project/SYNTHETIC"
 #PPI   = f'{LOC}/NETWORK_synthetic.txt'

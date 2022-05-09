@@ -43,7 +43,7 @@ g.accuracy
 g.confusion_matrix
 
 # Run the Explainer with 4 iterations (10 is recommended)
-g.explain(4)
+g.explain(3)
 
 # Edge and Node (Gene) Importances 
 g.gene_names
@@ -83,7 +83,7 @@ g.accuracy
 g.confusion_matrix
 
 # Run the Explainer with 4 iterations (10 is recommended)
-g.explain(4)
+g.explain(3)
 
 # Edge and Node (Gene) Importances 
 g.gene_names
