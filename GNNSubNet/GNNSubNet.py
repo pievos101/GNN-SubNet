@@ -101,9 +101,9 @@ class GNNSubNet(object):
         """
         Train the GNN model on the data provided during initialisation.
         """
+
         dataset = self.dataset
         gene_names = self.gene_names
-
 
         graphs_class_0_list = []
         graphs_class_1_list = []
@@ -130,10 +130,8 @@ class GNNSubNet(object):
             random_graphs_class_1_list = random.sample(graphs_class_1_list, graphs_class_0_len)
             balanced_dataset_list = graphs_class_0_list + random_graphs_class_1_list
 
-
         #print(len(random_graphs_class_0_list))
         #print(len(random_graphs_class_1_list))
-
 
         random.shuffle(balanced_dataset_list)
         print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
@@ -188,7 +186,6 @@ class GNNSubNet(object):
         #s2v_train_dataset = convert_to_s2vgraph(train_dataset)
         #s2v_test_dataset = convert_to_s2vgraph(test_dataset)
         #s2v_train_dataset, s2v_test_dataset = train_test_split(s2v_dataset, test_size=0.2, random_state=123)
-
 
         input_dim = no_of_features
         n_classes = 2

@@ -17,7 +17,8 @@ pip install GNNSubNet
 
 ### Synthetic Barabasi Networks
 
-The datasets can be found here: https://github.com/pievos101/GNN-SubNet/tree/main/GNNSubNet/datasets/synthetic
+The datasets can be found here: 
+https://github.com/pievos101/GNN-SubNet/tree/main/GNNSubNet/datasets/synthetic
 
 ```python
 from GNNSubNet import GNNSubNet as gnn
@@ -84,6 +85,19 @@ g.confusion_matrix
 # Run the Explainer with 4 iterations (10 is recommended)
 g.explain(4)
 
+# Edge and Node (Gene) Importances 
+g.gene_names
+g.edges
+
+# Importances
+g.edge_mask
+g.node_mask
+
+# Detected modules and their importances
+g.modules
+g.modules[0]
+
+g.module_importances
 
 ```
 
