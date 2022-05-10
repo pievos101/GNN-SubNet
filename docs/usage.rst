@@ -30,7 +30,7 @@ Once we have created our GNNSubNet object ``g`` we can train
 Step 2: Train a graph neural network
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Text.
+Text to come
 
 Step 3: Run the exlainer on the trained network
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
