@@ -6,6 +6,9 @@
 
 The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1> 
 
+A readthedocs documentation of GNN-SubNet is in progress and can be found here:
+<https://gnn-subnet.readthedocs.io>
+
 ## Installation
 
 To install GNNSubNet run:
@@ -109,7 +112,7 @@ g.module_importances
 
 ```
 
-## Further informations
+## Additional informations
 
 The GNNSubNet initialization function  expects the PPI network as an input, the feature matrices, as well as the outcome class. The input needs to be adjusted by the user.
 
