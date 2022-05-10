@@ -1,6 +1,6 @@
+torch
 torch-sparse
 torch-scatter
-torch
 tqdm
 numpy
 igraph
