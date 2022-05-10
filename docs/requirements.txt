@@ -1,7 +1,5 @@
 torch
 torch-geometric
-torch-sparse
-torch-scatter
 tqdm
 numpy
 igraph
