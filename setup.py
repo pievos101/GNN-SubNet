@@ -27,6 +27,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
+        'torch-scatter',
+        'torch-sparse',
         'torch',
         'tqdm',
         'numpy',
@@ -40,8 +42,6 @@ setup(
         'matplotlib',
         'wheel', 
         'dgl',
-        'torch-sparse',
-        'torch-scatter',
         'torchvision'
     ],
     include_package_data=True,  # Alternatively add files to MANIFEST.in
