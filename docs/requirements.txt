@@ -1,4 +1,5 @@
 torch
+torch-geometric
 torch-sparse
 torch-scatter
 tqdm
@@ -9,7 +10,6 @@ scikit-learn
 pandas
 requests
 networkx
-torch-geometric
 matplotlib
 wheel
 dgl
