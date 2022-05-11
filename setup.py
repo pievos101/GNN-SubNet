@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='GNNSubNet',
     packages=['GNNSubNet'],
-    version='0.1.8',
+    version='0.1.9',
     author="Bastian Pfeifer",
     author_email="bastian.pfeifer@medunigraz.at",
     description='Disease Subnetwork Detection with Explainable Graph Neural Networks',
@@ -27,9 +27,9 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'torch>=1.11.0',
-        'torch-scatter',
-        'torch-sparse',
+        'torch',
+        #'torch-scatter',
+        #'torch-sparse',
         'tqdm',
         'numpy',
         'igraph',
