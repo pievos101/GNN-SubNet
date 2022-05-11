@@ -27,9 +27,9 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'torch>=1.11.0',
-        'torch-scatter',
-        'torch-sparse',
+        'torch',
+        #'torch-scatter',
+        #'torch-sparse',
         'tqdm',
         'numpy',
         'igraph',
