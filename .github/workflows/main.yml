@@ -24,6 +24,10 @@ jobs:
     - name: Install GNNSubNet
       run: |
         python -m pip install --upgrade pip
+        pip install torch 
+        pip install torch-geometric
+        pip install torch-scatter
+        pip install torch-sparse
         pip install --verbose GNNSubNet
     - name: Test that GNNSubNet can be imported and exit
       run: |
