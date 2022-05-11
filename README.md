@@ -14,6 +14,11 @@ A readthedocs documentation of GNN-SubNet is in progress and can be found here:
 To install GNNSubNet run:
 
 ```python
+pip install torch 
+pip install torch-geometric
+pip install torch-scatter
+pip install torch-sparse
+
 pip install GNNSubNet
 ```
 ## Usage
