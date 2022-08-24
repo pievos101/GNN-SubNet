@@ -497,8 +497,7 @@ class GNNExplainer(torch.nn.Module):
         optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
         
         #optimizer = torch.optim.Adam([self.edge_mask],
-        #                             lr=self.lr)                        
-                        
+        #                             lr=self.lr)                                  
 
         # all nodes belong to same graph
         batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
@@ -524,6 +523,73 @@ class GNNExplainer(torch.nn.Module):
             optimizer.step()
          
         return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
+
+    def explain_graph_modified_s2v_API(self, dataset, param, node_mask=False):
+
+        self.model.eval()
+        self.__clear_masks__()    
+
+        PRED = []
+        LOGITS = []
+        LOGITS2 =[]
+        # Get the initial prediction.
+        with torch.no_grad():
+            for yy in range(len(dataset)):
+                x, edge_index = dataset[yy].node_features, dataset[yy].edge_mat
+                out = self.model([dataset[yy]])
+                log_logits = self.__to_log_prob__(out)
+                pp = log_logits.argmax(dim=-1)
+                PRED.append(pp)
+                LOGITS.append(-log_logits[0, pp])
+                LOGITS2.append(-log_logits[0, :])    
+
+        if node_mask==False:
+            self.__set_masks__(dataset[0].node_features, dataset[0].edge_mat)
+        else:
+            (N, F), E = dataset[0].node_features.size(), dataset[0].edge_mat.size(1)
+            std = 0.1
+            # inverse of sigmoid
+            node_mask = np.log(1/(1-node_mask))
+            # transform to tensor 
+            node_mask_tensor = torch.nn.Parameter(torch.from_numpy(node_mask*std))
+            self.node_feat_mask = torch.reshape(node_mask_tensor, (N, 1))
+            std = torch.nn.init.calculate_gain('relu') * sqrt(2.0 / (2 * N))
+            self.edge_mask = torch.nn.Parameter(torch.randn(E) * std)
+
+        self.to(x.device)
+        
+        n_nodes = dataset[0].node_features.size()[0]
+
+        optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
+        
+        #optimizer = torch.optim.Adam([self.edge_mask],
+        #                             lr=self.lr)                                  
+
+        # all nodes belong to same graph
+        batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
+        
+        for epoch in range(1, self.epochs + 1):
+            loss_xx  = 0 
+            sampSize = 10
+            if epoch%50==1: 
+                ids  = np.random.randint(len(dataset), size=sampSize)
+                
+            optimizer.zero_grad()
+            for dd in ids: 
+                data = dataset[dd]
+                data_copy = copy(data)
+                h = data.node_features * self.node_feat_mask.sigmoid()
+                data_copy.node_features = h
+                out = self.model([data_copy])
+                log_logits = self.__to_log_prob__(out)
+                loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
+                loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
+                loss_xx = loss_xx + loss_hit 
+            loss_xx.backward()
+            optimizer.step()
+         
+        return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
+
 
 
 

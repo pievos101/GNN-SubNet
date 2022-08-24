@@ -21,6 +21,7 @@ pip install torch-sparse
 
 pip install GNNSubNet
 ```
+Preferred versions are: torch=1.11.0, torchgeometric=2.04, torch-scatter=2.0.9, and torch-sparse=0.6.13.
 ## Usage
 
 ### Synthetic Barabasi Networks

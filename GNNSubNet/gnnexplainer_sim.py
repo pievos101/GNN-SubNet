@@ -123,12 +123,21 @@ print("Run the Explainer ...")
 no_of_runs = 10
 lamda = 0.85 # not used anymore
 ems = []
+
+# for API
+#run = function(node_mask, no_runs){
+
 for idx in range(no_of_runs):
     print(f'Explainer::Iteration {idx+1} of {no_of_runs}') 
     exp = GNNExplainer(model, epochs=300)
     em = exp.explain_graph_modified_s2v(dataset, lamda)
     Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
     gnn_feature_masks = np.reshape(em, (len(em), -1))
+    # mod - API
+    #em = exp.explain_graph_modified_s2v_API(dataset, lamda, gnn_feature_masks)
+    #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
+    #gnn_feature_masks = np.reshape(em, (len(em), -1))
+    # end mod - API
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
     gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_mat)
     np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
@@ -141,3 +150,4 @@ np.savetxt(f"{path}/edge_masks.csv", mean_em, delimiter=',', fmt='%.5f')
 avg_mask, coms = find_communities(f"{path}/dataset/graph0_edges.txt", f"{path}/edge_masks.csv")
 print(avg_mask, coms)
 
+#}
