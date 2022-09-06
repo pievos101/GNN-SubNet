@@ -1,6 +1,6 @@
 ![GNNSubNetLogo](https://github.com/pievos101/GNN-SubNet/blob/main/GNNSubNet_plot.png)
 
-# GNN-SubNet: Disease Subnetwork Detection with Explainable Graph Neural Networks
+# Disease subnetwork detection with explainable Graph Neural Networks
 
 ## Paper 
 
