@@ -4,7 +4,7 @@
 
 ## Paper 
 
-The paper for this project is available here: <https://www.biorxiv.org/content/10.1101/2022.01.12.475995v1> 
+The paper for this project is available here: <https://academic.oup.com/bioinformatics/article/38/Supplement_2/ii120/6702000> 
 
 A readthedocs documentation of GNN-SubNet is in progress and can be found here:
 <https://gnn-subnet.readthedocs.io>
