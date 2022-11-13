@@ -318,6 +318,8 @@ class GNNSubNet(object):
         self.confusion_matrix = confusion_matrix_gnn
         self.test_loss = test_loss
         self.s2v_test_dataset = s2v_test_dataset
+        self.predictions = predicted_class_array
+        self.true_class  = true_class_array
 
     def explain(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
         """
