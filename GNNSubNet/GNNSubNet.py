@@ -400,6 +400,47 @@ class GNNSubNet(object):
 
         self._explainer_run = True
 
+    def predict(self, gnnsubnet_test):
+
+        confusion_array = []
+        true_class_array = []
+        predicted_class_array = []
+
+        s2v_test_dataset  = convert_to_s2vgraph(gnnsubnet_test.dataset)
+        model = self.model
+        output = pass_data_iteratively(model, s2v_test_dataset)
+        predicted_class = output.max(1, keepdim=True)[1]
+        labels = torch.LongTensor([graph.label for graph in s2v_test_dataset])
+        correct = predicted_class.eq(labels.view_as(predicted_class)).sum().item()
+        acc_test = correct / float(len(s2v_test_dataset))
+
+        #if use_weights:
+        #    loss = nn.CrossEntropyLoss(weight=weight)(output,labels)
+        #else:
+        #    loss = nn.CrossEntropyLoss()(output,labels)
+        #test_loss = loss
+
+        predicted_class_array = np.append(predicted_class_array, predicted_class)
+        true_class_array = np.append(true_class_array, labels)
+
+        confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
+        print("\nConfusion matrix:\n")
+        print(confusion_matrix_gnn)
+
+        counter = 0
+        for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
+            if it == true_class_array[i]:
+                counter += 1
+
+        accuracy = counter/len(true_class_array) * 100
+        print("Accuracy: {}%".format(accuracy))
+        
+        self.predictions_test = predicted_class_array
+        self.true_class_test  = true_class_array
+        self.accuracy_test = accuracy
+        self.confusion_matrix_test = confusion_matrix_gnn
+
+
     def download_TCGA(self, save_to_disk=False) -> None:
         """
         Warning: Currently not implemented!
