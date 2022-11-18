@@ -9,8 +9,7 @@ The paper for this project is available here: <https://academic.oup.com/bioinfor
 A readthedocs documentation of GNN-SubNet is in progress and can be found here:
 <https://gnn-subnet.readthedocs.io>
 
-See also
-
+See also:
 https://github.com/pievos101/Ensemble-GNN/blob/main/README.md
 
 ## Installation
