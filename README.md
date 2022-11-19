@@ -141,4 +141,22 @@ The detected disease subnetworks can be found within the 'communities.txt' file,
 
 Note, the mentioned community file contain the network node identifier which match the order of the gene names stored in 'gene_names.txt'
 
+
+## Citation
+https://academic.oup.com/bioinformatics/article/38/Supplement_2/ii120/6702000
+
+### Bibtex
+```
+@article{pfeifer2022gnn,
+  title={{GNN-SubNet}: Disease subnetwork detection with explainable graph neural networks},
+  author={Pfeifer, Bastian and Saranti, Anna and Holzinger, Andreas},
+  journal={Bioinformatics},
+  volume={38},
+  number={Supplement\_2},
+  pages={ii120--ii126},
+  year={2022},
+  publisher={Oxford University Press}
+}
+
+```
   
