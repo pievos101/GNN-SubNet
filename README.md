@@ -11,6 +11,7 @@ A readthedocs documentation of GNN-SubNet is in progress and can be found here:
 
 See also:
 https://github.com/pievos101/Ensemble-GNN/blob/main/README.md
+for disease module discovery using ensemble learning with Graph Neural Networks
 
 ## Installation
 
