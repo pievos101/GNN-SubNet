@@ -37,7 +37,7 @@ class GNNSubNet(object):
     The class GNNSubSet represents the main user API for the
     GNN-SubNet package.
     """
-    def __init__(self, location, ppi=None, features=None, target=None, cutoff=950, normalize=True) -> None:
+    def __init__(self, location=None, ppi=None, features=None, target=None, cutoff=950, normalize=True) -> None:
 
         self.location = location
         self.ppi = ppi
@@ -53,6 +53,9 @@ class GNNSubNet(object):
 
         # Flags for internal use (hidden from user)
         self._explainer_run = False
+
+        if ppi == None:
+            return None
 
         dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)
 
@@ -313,7 +316,7 @@ class GNNSubNet(object):
         model.train()
 
         self.model_status = 'Trained'
-        self.model = model
+        self.model = copy.deepcopy(model)
         self.accuracy = accuracy
         self.confusion_matrix = confusion_matrix_gnn
         self.test_loss = test_loss
@@ -368,6 +371,8 @@ class GNNSubNet(object):
         self.node_mask_matrix = np.concatenate(NODE_MASK,1)
         self.node_mask = np.concatenate(NODE_MASK,1).mean(1)
 
+        self._explainer_run = True
+        
         ###############################################
         # Perform Community Detection
         ###############################################
@@ -408,6 +413,7 @@ class GNNSubNet(object):
 
         s2v_test_dataset  = convert_to_s2vgraph(gnnsubnet_test.dataset)
         model = self.model
+        model.eval()
         output = pass_data_iteratively(model, s2v_test_dataset)
         predicted_class = output.max(1, keepdim=True)[1]
         labels = torch.LongTensor([graph.label for graph in s2v_test_dataset])
