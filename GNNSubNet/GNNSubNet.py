@@ -162,7 +162,7 @@ class GNNSubNet(object):
                 test_graph_class_0_nr += 1
             else:
                 test_graph_class_1_nr += 1
-        print(f"Test graph class 0: {test_graph_class_0_nr}, test graph class 1: {test_graph_class_1_nr}")
+        print(f"Validation graph class 0: {test_graph_class_0_nr}, validation graph class 1: {test_graph_class_1_nr}")
 
         s2v_train_dataset = convert_to_s2vgraph(train_dataset_list)
         s2v_test_dataset  = convert_to_s2vgraph(test_dataset_list)
@@ -253,7 +253,7 @@ class GNNSubNet(object):
 
             print('Epoch {}, val_loss {:.4f}'.format(epoch, val_loss))
             if val_loss < min_val_loss:
-                print(f"Saving best model with loss {val_loss}")
+                print(f"Saving best model with validation loss {val_loss}")
                 best_model = copy.deepcopy(model)
                 epochs_no_improve = 0
                 min_val_loss = val_loss
@@ -294,7 +294,7 @@ class GNNSubNet(object):
         true_class_array = np.append(true_class_array, labels)
 
         confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
-        print("\nConfusion matrix:\n")
+        print("\nConfusion matrix (Validation set):\n")
         print(confusion_matrix_gnn)
 
 
@@ -304,8 +304,8 @@ class GNNSubNet(object):
                 counter += 1
 
         accuracy = counter/len(true_class_array) * 100
-        print("Accuracy: {}%".format(accuracy))
-        print("Test loss {}".format(test_loss))
+        print("Validation accuracy: {}%".format(accuracy))
+        print("Validation loss {}".format(test_loss))
 
         checkpoint = {
             'state_dict': best_model.state_dict(),
