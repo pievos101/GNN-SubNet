@@ -78,6 +78,7 @@ class GNNSubNet(object):
         #print('\n')
 
         self.dataset = dataset
+        self.true_class = None
         self.gene_names = gene_names
         self.s2v_test_dataset = None
         self.edges =  np.transpose(np.array(dataset[0].edge_index))
@@ -445,7 +446,7 @@ class GNNSubNet(object):
         self.true_class_test  = true_class_array
         self.accuracy_test = accuracy
         self.confusion_matrix_test = confusion_matrix_gnn
-
+        return(predicted_class_array)
 
     def download_TCGA(self, save_to_disk=False) -> None:
         """
