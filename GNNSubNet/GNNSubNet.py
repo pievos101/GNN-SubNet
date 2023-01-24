@@ -37,7 +37,7 @@ class GNNSubNet(object):
     The class GNNSubSet represents the main user API for the
     GNN-SubNet package.
     """
-    def __init__(self, location=None, ppi=None, features=None, target=None, cutoff=950, normalize=True) -> None:
+    def __init__(self, location=None, ppi=None, features=None, target=None, cutoff=950, normalize=True, verbose: int = 0, initialize: bool = True) -> None:
 
         self.location = location
         self.ppi = ppi
@@ -51,13 +51,31 @@ class GNNSubNet(object):
         self.confusion_matrix = None
         self.test_loss = None
 
+        self.verbose = verbose
+        self.cutoff = cutoff
+        self.normalize = normalize
+        self.initialize = initialize
+
+        self.true_class = None
+        self.s2v_test_dataset = None
+        self.edge_mask = None
+        self.node_mask = None
+        self.node_mask_matrix = None
+        self.modules = None
+        self.module_importances = None
+
         # Flags for internal use (hidden from user)
         self._explainer_run = False
 
         if ppi == None:
             return None
 
-        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, cutoff, normalize)
+        if self.initialize:
+            self.initialize_graph()
+
+
+    def initialize_graph(self):
+        dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, True, self.cutoff, self.normalize)
 
          # Check whether graph is connected
         check = check_if_graph_is_connected(dataset[0].edge_index)
@@ -66,28 +84,18 @@ class GNNSubNet(object):
         if check == False:
 
             print("Calculate subgraph ...")
-            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, False, cutoff, normalize)
+            dataset, gene_names = load_OMICS_dataset(self.ppi, self.features, self.target, False, self.cutoff, self.normalize)
 
         check = check_if_graph_is_connected(dataset[0].edge_index)
         print("Graph is connected ", check)
 
-        #print('\n')
-        print('##################')
-        print("# DATASET LOADED #")
-        print('##################')
-        #print('\n')
+        if self.verbose:
+            print("# DATASET LOADED")
 
         self.dataset = dataset
-        self.true_class = None
         self.gene_names = gene_names
-        self.s2v_test_dataset = None
         self.edges =  np.transpose(np.array(dataset[0].edge_index))
 
-        self.edge_mask = None
-        self.node_mask = None
-        self.node_mask_matrix = None
-        self.modules = None
-        self.module_importances = None
 
     def summary(self):
         """
@@ -121,7 +129,8 @@ class GNNSubNet(object):
         graphs_class_0_len = len(graphs_class_0_list)
         graphs_class_1_len = len(graphs_class_1_list)
 
-        print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
+        if self.verbose >= 1:
+            print(f"## Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
 
         ########################################################################################################################
         # Downsampling of the class that contains more elements ===========================================================
@@ -139,7 +148,8 @@ class GNNSubNet(object):
         #print(len(random_graphs_class_1_list))
 
         random.shuffle(balanced_dataset_list)
-        print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
+        if self.verbose >= 1:
+            print(f"## Length of balanced dataset list: {len(balanced_dataset_list)}")
 
         list_len = len(balanced_dataset_list)
         #print(list_len)
@@ -154,7 +164,9 @@ class GNNSubNet(object):
                 train_graph_class_0_nr += 1
             else:
                 train_graph_class_1_nr += 1
-        print(f"Train graph class 0: {train_graph_class_0_nr}, train graph class 1: {train_graph_class_1_nr}")
+
+        if self.verbose >= 1:
+            print(f"## Train graph class 0: {train_graph_class_0_nr}, train graph class 1: {train_graph_class_1_nr}")
 
         test_graph_class_0_nr = 0
         test_graph_class_1_nr = 0
@@ -163,7 +175,8 @@ class GNNSubNet(object):
                 test_graph_class_0_nr += 1
             else:
                 test_graph_class_1_nr += 1
-        print(f"Validation graph class 0: {test_graph_class_0_nr}, validation graph class 1: {test_graph_class_1_nr}")
+        if self.verbose >= 1:
+            print(f"## Validation graph class 0: {test_graph_class_0_nr}, validation graph class 1: {test_graph_class_1_nr}")
 
         s2v_train_dataset = convert_to_s2vgraph(train_dataset_list)
         s2v_test_dataset  = convert_to_s2vgraph(test_dataset_list)
@@ -210,7 +223,7 @@ class GNNSubNet(object):
 
         for epoch in range(epoch_nr):
             model.train()
-            pbar = tqdm(range(steps_per_epoch), unit='batch')
+            pbar = tqdm(range(steps_per_epoch), unit='batch', disable=not self.verbose)
             epoch_loss = 0
             for pos in pbar:
                 selected_idx = np.random.permutation(len(s2v_train_dataset))[:32]
@@ -236,9 +249,10 @@ class GNNSubNet(object):
             labels = torch.LongTensor([graph.label for graph in s2v_train_dataset])
             correct = predicted_class.eq(labels.view_as(predicted_class)).sum().item()
             acc_train = correct / float(len(s2v_train_dataset))
-            print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
-            print(f"Train Acc {acc_train:.4f}")
-
+            if self.verbose >= 1:
+                print('## Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+            if self.verbose:
+                print(f"# Train Acc {acc_train:.4f}")
 
             pbar.set_description('epoch: %d' % (epoch))
             val_loss = 0
@@ -252,9 +266,11 @@ class GNNSubNet(object):
                 loss = nn.CrossEntropyLoss()(output,labels)
             val_loss += loss
 
-            print('Epoch {}, val_loss {:.4f}'.format(epoch, val_loss))
+            if self.verbose >= 1:
+                print('Epoch {}, val_loss {:.4f}'.format(epoch, val_loss))
             if val_loss < min_val_loss:
-                print(f"Saving best model with validation loss {val_loss}")
+                if self.verbose:
+                    print(f"Saving best model with validation loss {val_loss}")
                 best_model = copy.deepcopy(model)
                 epochs_no_improve = 0
                 min_val_loss = val_loss
@@ -263,7 +279,8 @@ class GNNSubNet(object):
                 epochs_no_improve += 1
                 # Check early stopping condition
                 if epochs_no_improve == n_epochs_stop:
-                    print('Early stopping!')
+                    if self.verbose >= 1:
+                        print('## Early stopping!')
                     model.load_state_dict(best_model.state_dict())
                     break
 
@@ -295,8 +312,10 @@ class GNNSubNet(object):
         true_class_array = np.append(true_class_array, labels)
 
         confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
-        print("\nConfusion matrix (Validation set):\n")
-        print(confusion_matrix_gnn)
+
+        if self.verbose >= 1:
+            print("\nConfusion matrix (Validation set):\n")
+            print(confusion_matrix_gnn)
 
 
         counter = 0
@@ -305,8 +324,10 @@ class GNNSubNet(object):
                 counter += 1
 
         accuracy = counter/len(true_class_array) * 100
-        print("Validation accuracy: {}%".format(accuracy))
-        print("Validation loss {}".format(test_loss))
+
+        if self.verbose >= 1:
+            print("Validation accuracy: {}%".format(accuracy))
+            print("Validation loss {}".format(test_loss))
 
         checkpoint = {
             'state_dict': best_model.state_dict(),
@@ -340,9 +361,8 @@ class GNNSubNet(object):
         dataset = self.dataset
         gene_names = self.gene_names
 
-        print("")
-        print("------- Run the Explainer -------")
-        print("")
+        if self.verbose:
+            print("# Run the Explainer")
 
         no_of_runs = n_runs
         lamda = 0.8 # not used!
@@ -350,7 +370,8 @@ class GNNSubNet(object):
         NODE_MASK = list()
 
         for idx in range(no_of_runs):
-            print(f'Explainer::Iteration {idx+1} of {no_of_runs}')
+            if self.verbose >= 1:
+                print(f'Explainer::Iteration {idx+1} of {no_of_runs}')
             exp = GNNExplainer(model, epochs=300)
             em = exp.explain_graph_modified_s2v(s2v_test_dataset, lamda)
             #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
@@ -373,7 +394,7 @@ class GNNSubNet(object):
         self.node_mask = np.concatenate(NODE_MASK,1).mean(1)
 
         self._explainer_run = True
-        
+
         ###############################################
         # Perform Community Detection
         ###############################################
@@ -431,8 +452,9 @@ class GNNSubNet(object):
         true_class_array = np.append(true_class_array, labels)
 
         confusion_matrix_gnn = confusion_matrix(true_class_array, predicted_class_array)
-        print("\nConfusion matrix:\n")
-        print(confusion_matrix_gnn)
+        if self.verbose >= 1:
+            print("## Confusion matrix:")
+            print("## %s" % str(confusion_matrix_gnn))
 
         counter = 0
         for it, i in zip(predicted_class_array, range(len(predicted_class_array))):
@@ -440,8 +462,9 @@ class GNNSubNet(object):
                 counter += 1
 
         accuracy = counter/len(true_class_array) * 100
-        print("Accuracy: {}%".format(accuracy))
-        
+        if self.verbose >= 1:
+            print("## Accuracy: {}%".format(accuracy))
+
         self.predictions_test = predicted_class_array
         self.true_class_test  = true_class_array
         self.accuracy_test = accuracy
@@ -471,3 +494,9 @@ class GNNSubNet(object):
         raw = None
 
         return None
+
+    def __len__(self) -> int:
+        try:
+            return self.edges.shape[0]
+        except:
+            return None
