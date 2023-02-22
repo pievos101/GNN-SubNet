@@ -101,9 +101,13 @@ class GNNSubNet(object):
         #for i in self.__dict__:
         #    print('%s: %s' % (i, self.__dict__[i]))
 
-    def train(self, epoch_nr = 10, shuffle=True, weights=False):
+    def train(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum'):
         """
         Train the GNN model on the data provided during initialisation.
+        num_layers: number of layers in the neural networks (INCLUDING the input layer)
+        num_mlp_layers: number of layers in mlps (EXCLUDING the input layer)
+        graph_pooling_type: how to aggregate entire nodes in a graph (mean, average)
+        neighbor_pooling_type: how to aggregate neighbors (mean, average, or max)
         """
         use_weights = False
 
@@ -191,7 +195,7 @@ class GNNSubNet(object):
         input_dim = no_of_features
         n_classes = 2
 
-        model = GraphCNN(5, 2, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
+        model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         opt = torch.optim.Adam(model.parameters(), lr = 0.01)
 
         load_model = False
@@ -202,7 +206,7 @@ class GNNSubNet(object):
 
         model.train()
         min_loss = 50
-        best_model = GraphCNN(5, 3, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
+        best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         min_val_loss = 150
         n_epochs_stop = 5
         epochs_no_improve = 0
@@ -446,6 +450,7 @@ class GNNSubNet(object):
         self.true_class_test  = true_class_array
         self.accuracy_test = accuracy
         self.confusion_matrix_test = confusion_matrix_gnn
+        
         return(predicted_class_array)
 
     def download_TCGA(self, save_to_disk=False) -> None:
