@@ -32,6 +32,8 @@ from .graphcnn import GraphCNN
 from .community_detection import find_communities
 from .edge_importance import calc_edge_importance
 
+from torch_geometric.nn.conv.cheb_conv import ChebConv
+
 class GNNSubNet(object):
     """
     The class GNNSubSet represents the main user API for the
@@ -98,10 +100,269 @@ class GNNSubNet(object):
         print("Number of edges:", self.edges.shape[0])
         print("Number of modalities:",self.dataset[0].x.shape[1])
 
-        #for i in self.__dict__:
-        #    print('%s: %s' % (i, self.__dict__[i]))
+    def train(self, epoch_nr = 20, method="chebconv"):
 
-    def train(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum'):
+        if method=="chebconv":
+            self.train_chebconv(epoch_nr = epoch_nr)
+            self.classifier="chebconv"
+
+        if method=="graphcnn":
+            self.train_graphcnn(epoch_nr = epoch_nr)
+            self.classifier="graphcnn"
+
+
+    def explain(self, n_runs=1, classifier="chebconv"):
+
+        if self.classifier=="chebconv":
+            self.explain_chebconv(n_runs=n_runs)
+
+        if self.classifier=="graphcnn":
+            self.explain_graphcnn(n_runs=n_runs)      
+    
+    def predict(self, gnnsubnet_test, classifier="chebconv"):
+    
+        if self.classifier=="chebconv":
+            pred = self.predict_chebconv(gnnsubnet_test=gnnsubnet_test)
+
+        if self.classifier=="graphcnn":
+            pred = self.predict_graphcnn(gnnsubnet_test=gnnsubnet_test)      
+               
+        pred = np.array(pred)
+        pred = pred.reshape(1, pred.size)
+
+        return pred
+
+    def train_chebconv(self, epoch_nr = 10, shuffle=True, weights=False):
+        """
+        Train the GNN model on the data provided during initialisation.
+        """
+        use_weights = False
+
+        dataset = self.dataset
+        gene_names = self.gene_names
+
+        graphs_class_0_list = []
+        graphs_class_1_list = []
+        for graph in dataset:
+            if graph.y.numpy() == 0:
+                graphs_class_0_list.append(graph)
+            else:
+                graphs_class_1_list.append(graph)
+
+        graphs_class_0_len = len(graphs_class_0_list)
+        graphs_class_1_len = len(graphs_class_1_list)
+
+        print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
+
+        ########################################################################################################################
+        # Downsampling of the class that contains more elements ===========================================================
+        # ########################################################################################################################
+
+        if graphs_class_0_len >= graphs_class_1_len:
+            random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
+            balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
+
+        if graphs_class_0_len < graphs_class_1_len:
+            random_graphs_class_1_list = random.sample(graphs_class_1_list, graphs_class_0_len)
+            balanced_dataset_list = graphs_class_0_list + random_graphs_class_1_list
+
+        random.shuffle(balanced_dataset_list)
+        print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
+
+        list_len = len(balanced_dataset_list)
+        #print(list_len)
+        train_set_len = int(list_len * 4 / 5)
+        train_dataset_list = balanced_dataset_list[:train_set_len]
+        test_dataset_list  = balanced_dataset_list[train_set_len:]
+
+        train_graph_class_0_nr = 0
+        train_graph_class_1_nr = 0
+        for graph in train_dataset_list:
+            if graph.y.numpy() == 0:
+                train_graph_class_0_nr += 1
+            else:
+                train_graph_class_1_nr += 1
+        print(f"Train graph class 0: {train_graph_class_0_nr}, train graph class 1: {train_graph_class_1_nr}")
+
+        test_graph_class_0_nr = 0
+        test_graph_class_1_nr = 0
+        for graph in test_dataset_list:
+            if graph.y.numpy() == 0:
+                test_graph_class_0_nr += 1
+            else:
+                test_graph_class_1_nr += 1
+        print(f"Validation graph class 0: {test_graph_class_0_nr}, validation graph class 1: {test_graph_class_1_nr}")
+
+        # for ChebConv()
+        s2v_train_dataset = train_dataset_list
+        s2v_test_dataset  = test_dataset_list
+
+        model_path = 'omics_model.pth'
+        no_of_features = dataset[0].x.shape[1]
+        nodes_per_graph_nr = dataset[0].x.shape[0]
+
+        input_dim = no_of_features
+        n_classes = 2
+
+        #model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
+        model = ChebConv(input_dim,n_classes,10)
+
+        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
+
+        load_model = False
+        if load_model:
+            checkpoint = torch.load(model_path)
+            model.load_state_dict(checkpoint['state_dict'])
+            opt = checkpoint['optimizer']
+
+        model.train()
+
+        #min_loss = 50000
+        #best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
+        best_model = ChebConv(input_dim,n_classes,10)
+
+        min_val_loss = 1000000
+        n_epochs_stop = 7
+        epochs_no_improve = 0
+        steps_per_epoch = 50
+        
+        for epoch in range(epoch_nr):
+            model.train()
+            pbar = tqdm(range(steps_per_epoch), unit='batch')
+            epoch_loss = 0
+            for pos in pbar:
+
+                selected_idx = np.random.permutation(len(s2v_train_dataset))[:30]
+                batch_graph = [s2v_train_dataset[idx] for idx in selected_idx]
+                
+                
+                logits=[]
+                for g in batch_graph:
+                    logits.append(model(x=g.x, edge_index=g.edge_index).max(0)[0])
+                    #logits.append(model(x=g.x, edge_index=g.edge_index).mean(0))
+
+                logits = torch.reshape(torch.cat(logits,0),(30,2))  
+                
+                labels = torch.LongTensor([graph.y for graph in batch_graph])
+                
+
+                if use_weights:
+                    loss = nn.CrossEntropyLoss(weight=weight)(logits,labels)
+                else:
+                    loss = nn.CrossEntropyLoss()(logits,labels)
+
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+
+                epoch_loss += loss.detach().item()
+
+            epoch_loss /= steps_per_epoch
+            model.eval()
+            
+            output = []
+            for graphs in s2v_train_dataset: 
+                output.append(model(x=graphs.x, edge_index=graphs.edge_index).max(0)[0])
+                #output.append(model(x=graphs.x, edge_index=graphs.edge_index).mean(0))
+                     
+            output = torch.reshape(torch.cat(output,0),(len(output),2))
+            
+            output = np.array(output.detach())
+            predicted_class = output.argmax(1, keepdims=True)          
+            predicted_class = list(predicted_class)
+
+            labels = torch.LongTensor([graph.y for graph in s2v_train_dataset])
+            
+            correct = torch.tensor(np.array(predicted_class)).eq(labels.view_as(torch.tensor(np.array(predicted_class)))).sum().item()
+
+            acc_train = correct / len(s2v_train_dataset)
+            print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+            print(f"Train Acc {acc_train:.4f}")
+           
+
+            pbar.set_description('epoch: %d' % (epoch))
+            val_loss = 0
+
+            output = []
+            for graphs in s2v_test_dataset: 
+                output.append(model(x=graphs.x, edge_index=graphs.edge_index).max(0)[0])
+                #output.append(model(x=graphs.x, edge_index=graphs.edge_index).mean(0))
+
+            output = torch.reshape(torch.cat(output,0),(len(output),2))
+
+            labels = torch.LongTensor([graph.y for graph in s2v_test_dataset])
+            
+            if use_weights:
+                loss = nn.CrossEntropyLoss(weight=weight)(output,labels)
+            else:
+                loss = nn.CrossEntropyLoss()(output,labels)
+            val_loss += loss
+
+            print('Epoch {}, val_loss {:.4f}'.format(epoch, val_loss))
+            if val_loss < min_val_loss:
+                print(f"Saving best model with validation loss {val_loss}")
+                best_model = copy.deepcopy(model)
+                epochs_no_improve = 0
+                min_val_loss = val_loss
+
+            else:
+                epochs_no_improve += 1
+                # Check early stopping condition
+                if epochs_no_improve == n_epochs_stop:
+                    print('Early stopping!')
+                    model.load_state_dict(best_model.state_dict())
+                    break
+
+        confusion_array = []
+        true_class_array = []
+        predicted_class_array = []
+        model.eval()
+        correct = 0
+        true_class_array = []
+        predicted_class_array = []
+
+        test_loss = 0
+
+        model.load_state_dict(best_model.state_dict())
+
+        output = []
+        for graphs in s2v_test_dataset: 
+            output.append(model(x=graphs.x, edge_index=graphs.edge_index).max(0)[0])
+            #output.append(model(x=graphs.x, edge_index=graphs.edge_index).mean(0))
+            
+          
+        output = torch.reshape(torch.cat(output,0),(len(output),2))
+        output = np.array(output.detach())
+        predicted_class = output.argmax(1, keepdims=True)
+
+        predicted_class = list(predicted_class)
+        
+        labels = torch.LongTensor([graph.y for graph in s2v_test_dataset])
+        
+        correct = torch.tensor(np.array(predicted_class)).eq(labels.view_as(torch.tensor(np.array(predicted_class)))).sum().item()
+
+        confusion_matrix_gnn = confusion_matrix(labels, predicted_class)
+        print("\nConfusion matrix (Validation set):\n")
+        print(confusion_matrix_gnn)
+
+        from sklearn.metrics import balanced_accuracy_score
+        acc_bal = balanced_accuracy_score(labels, predicted_class)
+
+        print("Validation accuracy: {}".format(acc_bal))
+
+        model.train()
+
+        self.model_status = 'Trained'
+        self.model = copy.deepcopy(model)
+        self.accuracy = acc_bal
+        self.confusion_matrix = confusion_matrix_gnn
+        #self.test_loss = test_loss
+        self.s2v_test_dataset = s2v_test_dataset
+        self.predictions = predicted_class_array
+        self.true_class  = labels
+
+
+    def train_graphcnn(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum'):
         """
         Train the GNN model on the data provided during initialisation.
         num_layers: number of layers in the neural networks (INCLUDING the input layer)
@@ -329,7 +590,91 @@ class GNNSubNet(object):
         self.predictions = predicted_class_array
         self.true_class  = true_class_array
 
-    def explain(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
+    
+    
+    
+    def explain_chebconv(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
+        """
+        Explain the model's results.
+        """
+
+        ############################################
+        # Run the Explainer
+        ############################################
+
+        LOC = self.location
+        model = self.model
+        s2v_test_dataset = self.s2v_test_dataset
+        dataset = self.dataset
+        gene_names = self.gene_names
+
+        print("")
+        print("------- Run the Explainer -------")
+        print("")
+
+        no_of_runs = n_runs
+        lamda = 0.8 # not used!
+        ems = []
+        NODE_MASK = list()
+
+        for idx in range(no_of_runs):
+            print(f'Explainer::Iteration {idx+1} of {no_of_runs}')
+            exp = GNNExplainer(model, epochs=300)
+            em = exp.explain_graph_modified_cheb(s2v_test_dataset, lamda)
+            #Path(f"{path}/{sigma}/modified_gnn").mkdir(parents=True, exist_ok=True)
+            gnn_feature_masks = np.reshape(em, (len(em), -1))
+            NODE_MASK.append(np.array(gnn_feature_masks.sigmoid()))
+            np.savetxt(f'{LOC}/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_feature_masks{idx}.csv', gnn_feature_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            gnn_edge_masks = calc_edge_importance(gnn_feature_masks, dataset[0].edge_index)
+            np.savetxt(f'{LOC}/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            #np.savetxt(f'{path}/{sigma}/modified_gnn/gnn_edge_masks{idx}.csv', gnn_edge_masks.sigmoid(), delimiter=',', fmt='%.3f')
+            ems.append(gnn_edge_masks.sigmoid().numpy())
+
+        ems     = np.array(ems)
+        mean_em = ems.mean(0)
+
+        # OUTPUT -- Save Edge Masks
+        np.savetxt(f'{LOC}/edge_masks.txt', mean_em, delimiter=',', fmt='%.5f')
+        self.edge_mask = mean_em
+        self.node_mask_matrix = np.concatenate(NODE_MASK,1)
+        self.node_mask = np.concatenate(NODE_MASK,1).mean(1)
+
+        self._explainer_run = True
+        
+        ###############################################
+        # Perform Community Detection
+        ###############################################
+
+        avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
+        self.modules = coms
+        self.module_importances = avg_mask
+
+        np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+
+        filePath = f'{LOC}/communities.txt'
+
+        if os.path.exists(filePath):
+            os.remove(filePath)
+
+        f = open(f'{LOC}/communities.txt', "a")
+        for idx in range(len(avg_mask)):
+            s_com = ','.join(str(e) for e in coms[idx])
+            f.write(s_com + '\n')
+
+        f.close()
+
+        # Write gene_names to file
+        textfile = open(f'{LOC}/gene_names.txt', "w")
+        for element in gene_names:
+            listToStr = ''.join(map(str, element))
+            textfile.write(listToStr + "\n")
+
+        textfile.close()
+
+        self._explainer_run = True    
+
+    def explain_graphcnn(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
         """
         Explain the model's results.
         """
@@ -410,7 +755,49 @@ class GNNSubNet(object):
 
         self._explainer_run = True
 
-    def predict(self, gnnsubnet_test):
+    def predict_chebconv(self, gnnsubnet_test):
+
+        confusion_array = []
+        true_class_array = []
+        predicted_class_array = []
+
+        s2v_test_dataset  = gnnsubnet_test.dataset
+        model = self.model
+        model.eval()
+
+        output = []
+        for graphs in s2v_test_dataset: 
+            output.append(model(x=graphs.x, edge_index=graphs.edge_index).max(0)[0])
+            #output.append(model(x=graphs.x, edge_index=graphs.edge_index).mean(0))
+            
+          
+        output = torch.reshape(torch.cat(output,0),(len(output),2))
+        output = np.array(output.detach())
+        predicted_class = output.argmax(1, keepdims=True)
+
+        predicted_class = list(predicted_class)
+        
+        labels = torch.LongTensor([graph.y for graph in s2v_test_dataset])
+        
+        correct = torch.tensor(np.array(predicted_class)).eq(labels.view_as(torch.tensor(np.array(predicted_class)))).sum().item()
+
+        confusion_matrix_gnn = confusion_matrix(labels, predicted_class)
+        print("\nConfusion matrix (Validation set):\n")
+        print(confusion_matrix_gnn)
+
+        from sklearn.metrics import balanced_accuracy_score
+        acc_bal = balanced_accuracy_score(labels, predicted_class)
+
+        print("Validation accuracy: {}".format(acc_bal))
+        
+        self.predictions_test = predicted_class
+        self.true_class_test  = labels
+        self.accuracy_test = acc_bal
+        self.confusion_matrix_test = confusion_matrix_gnn
+        
+        return predicted_class
+    
+    def predict_graphcnn(self, gnnsubnet_test):
 
         confusion_array = []
         true_class_array = []
@@ -451,7 +838,7 @@ class GNNSubNet(object):
         self.accuracy_test = accuracy
         self.confusion_matrix_test = confusion_matrix_gnn
         
-        return(predicted_class_array)
+        return predicted_class_array
 
     def download_TCGA(self, save_to_disk=False) -> None:
         """
