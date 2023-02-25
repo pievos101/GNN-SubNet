@@ -24,6 +24,8 @@ pip install torch-scatter
 pip install torch-sparse
 
 pip install GNNSubNet
+# newest version from GitHub can be installed via source
+pip install GNN-SubNet/
 ```
 Preferred versions are: torch==1.11.0, torchvision==0.12.0, torch-geometric==2.0.4, torch-scatter==2.0.9, and torch-sparse==0.6.13.
 ## Usage
