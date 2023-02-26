@@ -103,7 +103,7 @@ class GNNSubNet(object):
         print("Number of edges:", self.edges.shape[0])
         print("Number of modalities:",self.dataset[0].x.shape[1])
 
-    def train(self, epoch_nr = 20, method="graphcheb"):
+    def train(self, epoch_nr = 20, method="chebconv"):
 
         if method=="chebconv":
             self.train_chebconv(epoch_nr = epoch_nr)
@@ -118,7 +118,7 @@ class GNNSubNet(object):
             self.classifier="graphcheb"
 
 
-    def explain(self, n_runs=1, classifier="graphcheb"):
+    def explain(self, n_runs=1, classifier="chebconv"):
 
         if self.classifier=="chebconv":
             self.explain_chebconv(n_runs=n_runs)
@@ -130,7 +130,7 @@ class GNNSubNet(object):
             self.explain_graphcheb(n_runs=n_runs)
 
 
-    def predict(self, gnnsubnet_test, classifier="graphcheb"):
+    def predict(self, gnnsubnet_test, classifier="chebconv"):
     
         if self.classifier=="chebconv":
             pred = self.predict_chebconv(gnnsubnet_test=gnnsubnet_test)
