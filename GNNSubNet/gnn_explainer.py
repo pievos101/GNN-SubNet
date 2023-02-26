@@ -10,6 +10,7 @@ from torch_geometric.nn import MessagePassing
 from torch_geometric.data import Data
 import matplotlib.pyplot as plt
 from torch_geometric.utils import k_hop_subgraph, to_networkx
+from torch_geometric.loader import DataLoader
 
 EPS = 1e-15
 
@@ -531,7 +532,75 @@ class GNNExplainer(torch.nn.Module):
             optimizer.step()
          
         return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
+    
+    def explain_graph_modified_cheb2(self, dataset, param):
         
+        self.model.eval()
+        self.__clear_masks__()    
+
+        PRED = []
+        LOGITS = []
+        LOGITS2 =[]
+        # Get the initial prediction.
+        with torch.no_grad():
+            for yy in range(len(dataset)):
+                #x, edge_index = dataset[yy].node_features, dataset[yy].edge_mat
+                x, edge_index = dataset[yy].x, dataset[yy].edge_index   
+                #tr = DataLoader(dataset[yy], batch_size=None, shuffle=False)
+                #for vv in tr:
+                out = self.model(x, edge_index, None)
+                #out = self.model(x=x, edge_index=edge_index)
+                #print(out)
+                log_logits = self.__to_log_prob__(out)
+                log_logits = torch.reshape(log_logits,(1,2))
+                pp = log_logits.argmax(dim=-1)
+                PRED.append(pp)
+                LOGITS.append(-log_logits[0,pp])
+                LOGITS2.append(-log_logits[0,:])    
+
+        self.__set_masks__(dataset[0].x,dataset[0].edge_index)
+        self.to(x.device)
+        
+        n_nodes = dataset[0].x.size()[0]
+
+        optimizer = torch.optim.Adam([self.edge_mask, self.node_feat_mask], lr=self.lr)
+        
+        #optimizer = torch.optim.Adam([self.edge_mask],
+        #                             lr=self.lr)                                  
+
+        # all nodes belong to same graph
+        batch = torch.zeros(x.shape[0], dtype=int, device=x.device)
+        
+        for epoch in range(1, self.epochs + 1):
+            loss_xx  = 0 
+            sampSize = 10
+            if epoch%50==1: 
+                ids  = np.random.randint(len(dataset), size=sampSize)
+                
+            optimizer.zero_grad()
+            for dd in ids: 
+                data = dataset[dd]
+                data_copy = copy(data)
+                h = data.x * self.node_feat_mask.sigmoid()
+                data_copy.x = h
+                #tr = DataLoader(data_copy, batch_size=None, shuffle=False)
+                #for vv in tr:
+                out = self.model(data_copy.x, data_copy.edge_index, None)
+                #out = self.model(x=data_copy.x, edge_index=data_copy.edge_index).max(0)[0]
+                log_logits = self.__to_log_prob__(out)
+                log_logits = torch.reshape(log_logits,(1,2))
+                loss_hit  = self.__loss__(-1, log_logits, PRED[dd])
+                loss_fail = self.__loss__(-1, log_logits, abs(PRED[dd]-1))
+                #print(LOGITS2[dd])
+                #print(log_logits)
+                #print(out)
+                loss_xx = loss_xx + loss_hit 
+            loss_xx.backward()
+            optimizer.step()
+         
+        return self.node_feat_mask.view(-1,1).detach() #self.edge_mask.detach().sigmoid()
+            
+
     def explain_graph_modified_s2v(self, dataset, param):
         self.model.eval()
         self.__clear_masks__()    
