@@ -381,7 +381,7 @@ class GNNSubNet(object):
 
 
 
-    def train_chebconv(self, epoch_nr = 10, shuffle=True, weights=False):
+    def train_chebconv(self, epoch_nr = 20, shuffle=True, weights=False):
         """
         Train the GNN model on the data provided during initialisation.
         """
@@ -456,7 +456,7 @@ class GNNSubNet(object):
         #model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         model = ChebConv(input_dim,n_classes,10)
 
-        opt = torch.optim.Adam(model.parameters(), lr = 0.01)
+        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
 
         load_model = False
         if load_model:
@@ -517,7 +517,9 @@ class GNNSubNet(object):
             output = torch.reshape(torch.cat(output,0),(len(output),2))
             
             output = np.array(output.detach())
+            
             predicted_class = output.argmax(1, keepdims=True)          
+            
             predicted_class = list(predicted_class)
 
             labels = torch.LongTensor([graph.y for graph in s2v_train_dataset])
