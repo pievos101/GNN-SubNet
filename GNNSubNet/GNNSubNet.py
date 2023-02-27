@@ -258,7 +258,7 @@ class GNNSubNet(object):
         min_val_loss = 1000000
         n_epochs_stop = 7
         epochs_no_improve = 0
-        steps_per_epoch = 50
+        steps_per_epoch = 35
 
         for epoch in range(epoch_nr):
             model.train()
@@ -473,7 +473,7 @@ class GNNSubNet(object):
         min_val_loss = 1000000
         n_epochs_stop = 7
         epochs_no_improve = 0
-        steps_per_epoch = 50
+        steps_per_epoch = 35
         
         for epoch in range(epoch_nr):
             model.train()
@@ -720,7 +720,7 @@ class GNNSubNet(object):
         min_val_loss = 1000000
         n_epochs_stop = 5
         epochs_no_improve = 0
-        steps_per_epoch = 50
+        steps_per_epoch = 35
 
         for epoch in range(epoch_nr):
             model.train()
