@@ -537,7 +537,7 @@ class GNNExplainer(torch.nn.Module):
         
         self.model.eval()
         self.__clear_masks__()    
-
+        n_nodes = dataset[0].x.size()[0]
         PRED = []
         LOGITS = []
         LOGITS2 =[]
@@ -548,7 +548,7 @@ class GNNExplainer(torch.nn.Module):
                 x, edge_index = dataset[yy].x, dataset[yy].edge_index   
                 #tr = DataLoader(dataset[yy], batch_size=None, shuffle=False)
                 #for vv in tr:
-                out = self.model(x, edge_index, None)
+                out = self.model(x, edge_index, batch=torch.LongTensor(np.zeros(n_nodes)))
                 #out = self.model(x=x, edge_index=edge_index)
                 #print(out)
                 log_logits = self.__to_log_prob__(out)
@@ -585,7 +585,7 @@ class GNNExplainer(torch.nn.Module):
                 data_copy.x = h
                 #tr = DataLoader(data_copy, batch_size=None, shuffle=False)
                 #for vv in tr:
-                out = self.model(data_copy.x, data_copy.edge_index, None)
+                out = self.model(data_copy.x, data_copy.edge_index, batch=torch.LongTensor(np.zeros(n_nodes)))
                 #out = self.model(x=data_copy.x, edge_index=data_copy.edge_index).max(0)[0]
                 log_logits = self.__to_log_prob__(out)
                 log_logits = torch.reshape(log_logits,(1,2))
