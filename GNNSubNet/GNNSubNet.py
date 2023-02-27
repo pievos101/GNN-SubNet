@@ -456,7 +456,7 @@ class GNNSubNet(object):
         #model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         model = ChebConv(input_dim,n_classes,10)
 
-        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
+        opt = torch.optim.Adam(model.parameters(), lr = 0.01)
 
         load_model = False
         if load_model:
@@ -717,7 +717,7 @@ class GNNSubNet(object):
         model.train()
         min_loss = 50
         best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
-        min_val_loss = 150
+        min_val_loss = 1000000
         n_epochs_stop = 5
         epochs_no_improve = 0
         steps_per_epoch = 35
