@@ -231,7 +231,7 @@ class GNNSubNet(object):
                     num_node_features=input_dim,
                     hidden_channels=2,
                     K=10,
-                    layers_nr=2,
+                    layers_nr=1,
                     num_classes=2)
 
         opt = torch.optim.Adam(model.parameters(), lr = 0.01)
@@ -249,7 +249,7 @@ class GNNSubNet(object):
                     num_node_features=input_dim,
                     hidden_channels=2,
                     K=10,
-                    layers_nr=2,
+                    layers_nr=1,
                     num_classes=2)
 
         min_val_loss = 1000000
