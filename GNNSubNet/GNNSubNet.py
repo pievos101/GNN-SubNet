@@ -106,14 +106,17 @@ class GNNSubNet(object):
     def train(self, epoch_nr = 20, method="chebconv"):
 
         if method=="chebconv":
+            print("chebconv for training ...")
             self.train_chebconv(epoch_nr = epoch_nr)
             self.classifier="chebconv"
 
         if method=="graphcnn":
+            print("graphcnn for training ...")
             self.train_graphcnn(epoch_nr = epoch_nr)
             self.classifier="graphcnn"
 
         if method=="graphcheb":
+            print("graphcheb for training ...")
             self.train_graphcheb(epoch_nr = epoch_nr)
             self.classifier="graphcheb"
 
@@ -470,7 +473,7 @@ class GNNSubNet(object):
         min_val_loss = 1000000
         n_epochs_stop = 7
         epochs_no_improve = 0
-        steps_per_epoch = 50
+        steps_per_epoch = 35
         
         for epoch in range(epoch_nr):
             model.train()
