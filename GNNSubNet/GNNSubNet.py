@@ -150,10 +150,10 @@ class GNNSubNet(object):
         return pred
 
     
-    def train_graphcheb(self, epoch_nr = 10, shuffle=True, weights=False,
+    def train_graphcheb(self, epoch_nr = 50, shuffle=True, weights=False,
                     hidden_channels=10,
                     K=10,
-                    layers_nr=2,
+                    layers_nr=1,
                     num_classes=2):
         """
         ---
@@ -237,7 +237,7 @@ class GNNSubNet(object):
                     layers_nr=1,
                     num_classes=2)
 
-        opt = torch.optim.Adam(model.parameters(), lr = 0.01)
+        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
 
         load_model = False
         if load_model:
@@ -256,7 +256,7 @@ class GNNSubNet(object):
                     num_classes=2)
 
         min_val_loss = 1000000
-        n_epochs_stop = 7
+        n_epochs_stop = 10
         epochs_no_improve = 0
         steps_per_epoch = 35
 
