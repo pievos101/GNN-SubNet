@@ -613,7 +613,7 @@ class GNNSubNet(object):
         self.true_class  = labels
 
 
-    def train_graphcnn(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum'):
+    def train_graphcnn(self, num_layers=1, num_mlp_layers=1, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='max'):
         """
         Train the GNN model on the data provided during initialisation.
         num_layers: number of layers in the neural networks (INCLUDING the input layer)
@@ -708,7 +708,7 @@ class GNNSubNet(object):
         n_classes = 2
 
         model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
-        opt = torch.optim.Adam(model.parameters(), lr = 0.01)
+        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
 
         load_model = False
         if load_model:
