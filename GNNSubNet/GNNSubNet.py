@@ -103,7 +103,7 @@ class GNNSubNet(object):
         print("Number of edges:", self.edges.shape[0])
         print("Number of modalities:",self.dataset[0].x.shape[1])
 
-    def train(self, epoch_nr = 20, method="graphcheb"):
+    def train(self, epoch_nr = 20, method="chebconv"):
 
         if method=="chebconv":
             print("chebconv for training ...")
