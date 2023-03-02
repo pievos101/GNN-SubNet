@@ -152,7 +152,7 @@ class GNNSubNet(object):
     
     def train_graphcheb(self, epoch_nr = 50, shuffle=True, weights=False,
                     hidden_channels=10,
-                    K=10,
+                    K=5,
                     layers_nr=1,
                     num_classes=2):
         """
@@ -232,9 +232,9 @@ class GNNSubNet(object):
 
         model = GraphCheb(
                     num_node_features=input_dim,
-                    hidden_channels=2,
-                    K=10,
-                    layers_nr=1,
+                    hidden_channels=hidden_channels,
+                    K=K,
+                    layers_nr=layers_nr,
                     num_classes=2)
 
         opt = torch.optim.Adam(model.parameters(), lr = 0.1)
@@ -250,8 +250,8 @@ class GNNSubNet(object):
 
         best_model = GraphCheb(
                     num_node_features=input_dim,
-                    hidden_channels=2,
-                    K=10,
+                    hidden_channels=hidden_channels,
+                    K=K,
                     layers_nr=1,
                     num_classes=2)
 
@@ -325,6 +325,11 @@ class GNNSubNet(object):
                 best_model = copy.deepcopy(model)
                 epochs_no_improve = 0
                 min_val_loss = val_loss
+                #if acc_train > 0.75:
+                #    opt = torch.optim.Adam(model.parameters(), lr = 0.01)
+                #if acc_train > 0.85:
+                #    opt = torch.optim.Adam(model.parameters(), lr = 0.001)
+
 
             else:
                 epochs_no_improve += 1
