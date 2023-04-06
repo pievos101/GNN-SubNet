@@ -103,7 +103,7 @@ class GNNSubNet(object):
         print("Number of edges:", self.edges.shape[0])
         print("Number of modalities:",self.dataset[0].x.shape[1])
 
-    def train(self, epoch_nr = 20, method="chebconv"):
+    def train(self, epoch_nr = 20, method="graphcnn", learning_rate=0.01):
 
         if method=="chebconv":
             print("chebconv for training ...")
@@ -112,7 +112,7 @@ class GNNSubNet(object):
 
         if method=="graphcnn":
             print("graphcnn for training ...")
-            self.train_graphcnn(epoch_nr = epoch_nr)
+            self.train_graphcnn(epoch_nr = epoch_nr, learning_rate=learning_rate)
             self.classifier="graphcnn"
 
         if method=="graphcheb":
@@ -121,7 +121,7 @@ class GNNSubNet(object):
             self.classifier="graphcheb"
 
 
-    def explain(self, n_runs=1, classifier="chebconv"):
+    def explain(self, n_runs=1, classifier="graphcnn"):
 
         if self.classifier=="chebconv":
             self.explain_chebconv(n_runs=n_runs)
@@ -133,7 +133,7 @@ class GNNSubNet(object):
             self.explain_graphcheb(n_runs=n_runs)
 
 
-    def predict(self, gnnsubnet_test, classifier="chebconv"):
+    def predict(self, gnnsubnet_test, classifier="graphcnn"):
     
         if self.classifier=="chebconv":
             pred = self.predict_chebconv(gnnsubnet_test=gnnsubnet_test)
@@ -150,10 +150,10 @@ class GNNSubNet(object):
         return pred
 
     
-    def train_graphcheb(self, epoch_nr = 50, shuffle=True, weights=False,
-                    hidden_channels=10,
+    def train_graphcheb(self, epoch_nr = 20, shuffle=True, weights=False,
+                    hidden_channels=7,
                     K=5,
-                    layers_nr=1,
+                    layers_nr=2,
                     num_classes=2):
         """
         ---
@@ -459,7 +459,7 @@ class GNNSubNet(object):
         n_classes = 2
 
         #model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
-        model = ChebConv(input_dim,n_classes,10)
+        model = ChebConv(input_dim, n_classes, 10)
 
         opt = torch.optim.Adam(model.parameters(), lr = 0.1)
 
@@ -473,7 +473,7 @@ class GNNSubNet(object):
 
         #min_loss = 50000
         #best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
-        best_model = ChebConv(input_dim,n_classes,10)
+        best_model = ChebConv(input_dim, n_classes, 10)
 
         min_val_loss = 1000000
         n_epochs_stop = 7
@@ -617,8 +617,8 @@ class GNNSubNet(object):
         self.predictions = predicted_class_array
         self.true_class  = labels
 
-
-    def train_graphcnn(self, num_layers=1, num_mlp_layers=1, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='max'):
+    #model = GraphCNN(5, 2, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
+    def train_graphcnn(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum', learning_rate=0.01):
         """
         Train the GNN model on the data provided during initialisation.
         num_layers: number of layers in the neural networks (INCLUDING the input layer)
@@ -713,7 +713,7 @@ class GNNSubNet(object):
         n_classes = 2
 
         model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
-        opt = torch.optim.Adam(model.parameters(), lr = 0.1)
+        opt = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
         load_model = False
         if load_model:
@@ -725,7 +725,7 @@ class GNNSubNet(object):
         min_loss = 50
         best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         min_val_loss = 1000000
-        n_epochs_stop = 5
+        n_epochs_stop = 7
         epochs_no_improve = 0
         steps_per_epoch = 35
 
