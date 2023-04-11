@@ -29,8 +29,7 @@ from .gnn_training_utils import check_if_graph_is_connected, pass_data_iterative
 from .dataset import generate, load_OMICS_dataset, convert_to_s2vgraph
 from .gnn_explainer import GNNExplainer
 from .graphcnn  import GraphCNN
-from .graphcheb import GraphCheb
-
+from .graphcheb import GraphCheb, ChebConvNet, test_model_acc, test_model
 
 from .community_detection import find_communities
 from .edge_importance import calc_edge_importance
@@ -120,6 +119,11 @@ class GNNSubNet(object):
             self.train_graphcheb(epoch_nr = epoch_nr)
             self.classifier="graphcheb"
 
+        if method=="chebnet":
+            print("chebnet for training ...")
+            self.train_chebnet(epoch_nr = epoch_nr)
+            self.classifier="chebnet"
+
 
     def explain(self, n_runs=1, classifier="graphcnn"):
 
@@ -131,6 +135,10 @@ class GNNSubNet(object):
     
         if self.classifier=="graphcheb":
             self.explain_graphcheb(n_runs=n_runs)
+
+        if self.classifier=="chebnet":
+            self.explain_graphcheb(n_runs=n_runs)
+
 
 
     def predict(self, gnnsubnet_test, classifier="graphcnn"):
@@ -144,11 +152,230 @@ class GNNSubNet(object):
         if self.classifier=="graphcheb":
             pred = self.predict_graphcheb(gnnsubnet_test=gnnsubnet_test)
                
+        if self.classifier=="chebnet":
+            pred = self.predict_graphcheb(gnnsubnet_test=gnnsubnet_test)
+               
         pred = np.array(pred)
         pred = pred.reshape(1, pred.size)
 
         return pred
 
+    def train_chebnet(self, epoch_nr=25, shuffle=True, weights=False,
+                        hidden_channels=10,
+                        K=10,
+                        layers_nr=1,
+                        num_classes=2):
+        """
+        ---
+        """
+        use_weights = False
+
+        dataset = self.dataset
+        gene_names = self.gene_names
+
+        graphs_class_0_list = []
+        graphs_class_1_list = []
+        for graph in dataset:
+            if graph.y.detach().cpu().numpy() == 0:
+                graphs_class_0_list.append(graph)
+            else:
+                graphs_class_1_list.append(graph)
+
+        graphs_class_0_len = len(graphs_class_0_list)
+        graphs_class_1_len = len(graphs_class_1_list)
+
+        print(f"Graphs class 0: {graphs_class_0_len}, Graphs class 1: {graphs_class_1_len}")
+
+        ########################################################################################################################
+        # Downsampling of the class that contains more elements ===========================================================
+        # ########################################################################################################################
+
+        if graphs_class_0_len >= graphs_class_1_len:
+            random_graphs_class_0_list = random.sample(graphs_class_0_list, graphs_class_1_len)
+            balanced_dataset_list = graphs_class_1_list + random_graphs_class_0_list
+
+        if graphs_class_0_len < graphs_class_1_len:
+            random_graphs_class_1_list = random.sample(graphs_class_1_list, graphs_class_0_len)
+            balanced_dataset_list = graphs_class_0_list + random_graphs_class_1_list
+
+        # print(len(random_graphs_class_0_list))
+        # print(len(random_graphs_class_1_list))
+
+        random.shuffle(balanced_dataset_list)
+        print(f"Length of balanced dataset list: {len(balanced_dataset_list)}")
+
+        list_len = len(balanced_dataset_list)
+        # print(list_len)
+        train_set_len = int(list_len * 4 / 5)
+        train_dataset_list = balanced_dataset_list[:train_set_len]
+        test_dataset_list = balanced_dataset_list[train_set_len:]
+
+        train_graph_class_0_nr = 0
+        train_graph_class_1_nr = 0
+        for graph in train_dataset_list:
+            if graph.y.detach().cpu().numpy() == 0:
+                train_graph_class_0_nr += 1
+            else:
+                train_graph_class_1_nr += 1
+        print(f"Train graph class 0: {train_graph_class_0_nr}, train graph class 1: {train_graph_class_1_nr}")
+
+        test_graph_class_0_nr = 0
+        test_graph_class_1_nr = 0
+        for graph in test_dataset_list:
+            if graph.y.detach().cpu().numpy() == 0:
+                test_graph_class_0_nr += 1
+            else:
+                test_graph_class_1_nr += 1
+        print(f"Validation graph class 0: {test_graph_class_0_nr}, validation graph class 1: {test_graph_class_1_nr}")
+
+        # s2v_train_dataset = convert_to_s2vgraph(train_dataset_list)
+        # s2v_test_dataset  = convert_to_s2vgraph(test_dataset_list)
+        s2v_train_dataset = train_dataset_list
+        s2v_test_dataset = test_dataset_list
+
+        model_path = 'omics_model.pth'
+        no_of_features = dataset[0].x.shape[1]
+        nodes_per_graph_nr = dataset[0].x.shape[0]
+        print("\tnodes_per_graph_nr", nodes_per_graph_nr)
+
+        input_dim = no_of_features
+        n_classes = 2
+
+        #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model = ChebConvNet(input_channels=1, n_features=nodes_per_graph_nr, n_channels=2, n_classes=2, K=8, n_layers=1)
+        #print(model)
+        #model.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-6)
+        # lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.9,
+        #                                                       last_epoch=-1)
+        criterion = torch.nn.CrossEntropyLoss()
+
+        model.train()
+        min_loss = 50
+
+        best_model = ChebConvNet(input_channels=1, n_features=nodes_per_graph_nr, n_channels=2, n_classes=2, K=8, n_layers=1)
+        #best_model.to(device)
+        # best_model = ChebConv(in_channels=1, out_channels=2, K=10)
+
+        min_val_loss = 1000000.0
+        n_epochs_stop = 25
+        epochs_no_improve = 0
+        batch_size = 100
+
+        train_loader = DataLoader(s2v_train_dataset, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(s2v_test_dataset, batch_size=batch_size, shuffle=False)
+
+        for epoch in range(epoch_nr):
+            running_loss = 0.0
+            steps = 0
+            model.train()
+            # data_pbar_loader = tqdm(train_loader, unit='batch')
+            for data in train_loader:
+                out = model(x=data.x, edge_index=data.edge_index, batch=data.batch)
+                loss = criterion(out, data.y)  # Compute the loss.
+                loss.backward()  # Derive gradients.
+                optimizer.step()  # Update parameters based on gradients.
+                optimizer.zero_grad()  # Clear gradients.
+                running_loss += loss.item()
+                steps += 1
+
+            epoch_loss = running_loss / steps
+            model.eval()
+            acc_train = test_model_acc(train_loader, model)
+            val_loss, val_acc, _ , _ = test_model(test_loader, model, criterion)
+
+            print()
+            print(f'Epoch: {epoch:03d}, Train Loss: {epoch_loss:.4f}, Train Acc: {acc_train:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}', end='\t')
+            # print('Epoch {}, loss {:.4f}'.format(epoch, epoch_loss))
+            # print(f"Train Acc {acc_train:.4f}")
+
+            # data_pbar_loader.set_description('epoch: %d' % (epoch))
+            # val_loss = 0
+            #
+            # tr = DataLoader(s2v_test_dataset, batch_size=len(s2v_test_dataset), shuffle=False)
+            # for vv in tr:
+            #     # print("\toutput test")
+            #     output = model(vv.x, vv.edge_index, vv.batch)
+            #     # print("\toutput", output)
+            #
+            # # output = pass_data_iteratively(model, s2v_test_dataset)
+            #
+            # pred = output.max(1, keepdim=True)[1]
+            # labels = torch.LongTensor([graph.y for graph in s2v_test_dataset])
+            # if use_weights:
+            #     loss = nn.CrossEntropyLoss(weight=weight)(output, labels)
+            # else:
+            #     loss = nn.CrossEntropyLoss()(output, labels)
+            # val_loss += loss
+
+            # print('Epoch {}, val_loss {:.4f}'.format(epoch, val_loss))
+            if val_loss < min_val_loss and epoch > 2: # to go through at least 2 epochs
+                print(f"Saving best model with validation loss {val_loss:.4f}", end="")
+                best_model = copy.deepcopy(model)
+                epochs_no_improve = 0
+                min_val_loss = val_loss
+            else:
+                epochs_no_improve += 1
+                # Check early stopping condition
+                if epochs_no_improve == n_epochs_stop:
+                    print('Early stopping!')
+                    # model.load_state_dict(best_model.state_dict())
+                    break
+        #
+        # confusion_array = []
+        # true_class_array = []
+        # predicted_class_array = []
+        # model.eval()
+        # correct = 0
+        # true_class_array = []
+        # predicted_class_array = []
+
+        # loading the parameters of the best model
+        model.load_state_dict(best_model.state_dict())
+
+        _, _, true_labels, predicted_labels = test_model(test_loader, model, criterion)
+
+
+        # test_loss = 0
+        #
+        # model.load_state_dict(best_model.state_dict())
+        #
+        # tr = DataLoader(s2v_test_dataset, batch_size=len(s2v_test_dataset), shuffle=False)
+        # for vv in tr:
+        #     output = model(vv.x, vv.edge_index, vv.batch)
+        #
+        # # output = pass_data_iteratively(model, s2v_test_dataset)
+        # output = np.array(output.detach())
+        # predicted_class = output.argmax(1, keepdims=True)
+        #
+        # predicted_class = list(predicted_class)
+        #
+        # labels = torch.LongTensor([graph.y for graph in s2v_test_dataset])
+        # correct = torch.tensor(np.array(predicted_class)).eq(
+        #     labels.view_as(torch.tensor(np.array(predicted_class)))).sum().item()
+
+
+
+        confusion_matrix_gnn = confusion_matrix(true_labels, predicted_labels)
+        print("\nConfusion matrix (Validation set):\n")
+        print(confusion_matrix_gnn)
+
+        from sklearn.metrics import balanced_accuracy_score
+        acc_bal = balanced_accuracy_score(true_labels, predicted_labels)
+
+        print("Validation balanced accuracy: {}".format(acc_bal))
+
+        model.train()
+
+        self.model_status = 'Trained'
+        self.model = copy.deepcopy(model)
+        self.accuracy = acc_bal
+        self.confusion_matrix = confusion_matrix_gnn
+        # self.test_loss = test_loss
+        self.s2v_test_dataset = s2v_test_dataset
+        self.predictions = predicted_labels
+        self.true_class = true_labels
+    
     
     def train_graphcheb(self, epoch_nr = 20, shuffle=True, weights=False,
                     hidden_channels=7,
@@ -618,13 +845,13 @@ class GNNSubNet(object):
         self.true_class  = labels
 
     #model = GraphCNN(5, 2, input_dim, 32, n_classes, 0.5, True, 'sum1', 'sum', 0)
-    def train_graphcnn(self, num_layers=5, num_mlp_layers=2, epoch_nr = 10, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum', learning_rate=0.01):
+    def train_graphcnn(self, num_layers=2, num_mlp_layers=2, epoch_nr = 20, shuffle=True, weights=False, graph_pooling_type='sum1', neighbor_pooling_type ='sum', learning_rate=0.1):
         """
         Train the GNN model on the data provided during initialisation.
         num_layers: number of layers in the neural networks (INCLUDING the input layer)
         num_mlp_layers: number of layers in mlps (EXCLUDING the input layer)
         graph_pooling_type: how to aggregate entire nodes in a graph (mean, average)
-        neighbor_pooling_type: how to aggregate neighbors (mean, average, or max)
+        neighbor_pooling_type: *sum*! how to aggregate neighbors (mean, average, or max)
         """
         use_weights = False
 
@@ -725,7 +952,7 @@ class GNNSubNet(object):
         min_loss = 50
         best_model = GraphCNN(num_layers, num_mlp_layers, input_dim, 32, n_classes, 0.5, True, graph_pooling_type, neighbor_pooling_type, 0)
         min_val_loss = 1000000
-        n_epochs_stop = 7
+        n_epochs_stop = 10
         epochs_no_improve = 0
         steps_per_epoch = 35
 
