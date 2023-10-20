@@ -125,19 +125,19 @@ class GNNSubNet(object):
             self.classifier="chebnet"
 
 
-    def explain(self, n_runs=1, classifier="graphcnn"):
+    def explain(self, n_runs=1, classifier="graphcnn", communities=True):
 
         if self.classifier=="chebconv":
-            self.explain_chebconv(n_runs=n_runs)
+            self.explain_chebconv(n_runs=n_runs, communities=communities)
 
         if self.classifier=="graphcnn":
-            self.explain_graphcnn(n_runs=n_runs)      
+            self.explain_graphcnn(n_runs=n_runs, communities=communities)      
     
         if self.classifier=="graphcheb":
-            self.explain_graphcheb(n_runs=n_runs)
+            self.explain_graphcheb(n_runs=n_runs, communities=communities)
 
         if self.classifier=="chebnet":
-            self.explain_graphcheb(n_runs=n_runs)
+            self.explain_graphcheb(n_runs=n_runs, communities=communities)
 
 
 
@@ -1073,7 +1073,7 @@ class GNNSubNet(object):
         self.predictions = predicted_class_array
         self.true_class  = true_class_array
 
-    def explain_graphcheb(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
+    def explain_graphcheb(self, n_runs=10, explainer_lambda=0.8, communities=True, save_to_disk=False):
         """
         Explain the model's results.
         """
@@ -1126,36 +1126,37 @@ class GNNSubNet(object):
         # Perform Community Detection
         ###############################################
 
-        avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
-        self.modules = coms
-        self.module_importances = avg_mask
+        if communities:
+            avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
+            self.modules = coms
+            self.module_importances = avg_mask
 
-        np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+            np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
 
-        filePath = f'{LOC}/communities.txt'
+            filePath = f'{LOC}/communities.txt'
 
-        if os.path.exists(filePath):
-            os.remove(filePath)
+            if os.path.exists(filePath):
+                os.remove(filePath)
 
-        f = open(f'{LOC}/communities.txt', "a")
-        for idx in range(len(avg_mask)):
-            s_com = ','.join(str(e) for e in coms[idx])
-            f.write(s_com + '\n')
+            f = open(f'{LOC}/communities.txt', "a")
+            for idx in range(len(avg_mask)):
+                s_com = ','.join(str(e) for e in coms[idx])
+                f.write(s_com + '\n')
 
-        f.close()
+            f.close()
 
-        # Write gene_names to file
-        textfile = open(f'{LOC}/gene_names.txt', "w")
-        for element in gene_names:
-            listToStr = ''.join(map(str, element))
-            textfile.write(listToStr + "\n")
+            # Write gene_names to file
+            textfile = open(f'{LOC}/gene_names.txt', "w")
+            for element in gene_names:
+                listToStr = ''.join(map(str, element))
+                textfile.write(listToStr + "\n")
 
-        textfile.close()
+            textfile.close()
 
         self._explainer_run = True    
     
     
-    def explain_chebconv(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
+    def explain_chebconv(self, n_runs=10, explainer_lambda=0.8, communities=True, save_to_disk=False):
         """
         Explain the model's results.
         """
@@ -1208,35 +1209,36 @@ class GNNSubNet(object):
         # Perform Community Detection
         ###############################################
 
-        avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
-        self.modules = coms
-        self.module_importances = avg_mask
+        if communities:
+            avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
+            self.modules = coms
+            self.module_importances = avg_mask
 
-        np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+            np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
 
-        filePath = f'{LOC}/communities.txt'
+            filePath = f'{LOC}/communities.txt'
 
-        if os.path.exists(filePath):
-            os.remove(filePath)
+            if os.path.exists(filePath):
+                os.remove(filePath)
 
-        f = open(f'{LOC}/communities.txt', "a")
-        for idx in range(len(avg_mask)):
-            s_com = ','.join(str(e) for e in coms[idx])
-            f.write(s_com + '\n')
+            f = open(f'{LOC}/communities.txt', "a")
+            for idx in range(len(avg_mask)):
+                s_com = ','.join(str(e) for e in coms[idx])
+                f.write(s_com + '\n')
 
-        f.close()
+            f.close()
 
-        # Write gene_names to file
-        textfile = open(f'{LOC}/gene_names.txt', "w")
-        for element in gene_names:
-            listToStr = ''.join(map(str, element))
-            textfile.write(listToStr + "\n")
+            # Write gene_names to file
+            textfile = open(f'{LOC}/gene_names.txt', "w")
+            for element in gene_names:
+                listToStr = ''.join(map(str, element))
+                textfile.write(listToStr + "\n")
 
-        textfile.close()
+            textfile.close()
 
         self._explainer_run = True    
 
-    def explain_graphcnn(self, n_runs=10, explainer_lambda=0.8, save_to_disk=False):
+    def explain_graphcnn(self, n_runs=10, explainer_lambda=0.8, communities=True, save_to_disk=False):
         """
         Explain the model's results.
         """
@@ -1289,31 +1291,32 @@ class GNNSubNet(object):
         # Perform Community Detection
         ###############################################
 
-        avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
-        self.modules = coms
-        self.module_importances = avg_mask
+        if communities:
+            avg_mask, coms = find_communities(f'{LOC}/edge_index.txt', f'{LOC}/edge_masks.txt')
+            self.modules = coms
+            self.module_importances = avg_mask
 
-        np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
+            np.savetxt(f'{LOC}/communities_scores.txt', avg_mask, delimiter=',', fmt='%.3f')
 
-        filePath = f'{LOC}/communities.txt'
+            filePath = f'{LOC}/communities.txt'
 
-        if os.path.exists(filePath):
-            os.remove(filePath)
+            if os.path.exists(filePath):
+                os.remove(filePath)
 
-        f = open(f'{LOC}/communities.txt', "a")
-        for idx in range(len(avg_mask)):
-            s_com = ','.join(str(e) for e in coms[idx])
-            f.write(s_com + '\n')
+            f = open(f'{LOC}/communities.txt', "a")
+            for idx in range(len(avg_mask)):
+                s_com = ','.join(str(e) for e in coms[idx])
+                f.write(s_com + '\n')
 
-        f.close()
+            f.close()
 
-        # Write gene_names to file
-        textfile = open(f'{LOC}/gene_names.txt', "w")
-        for element in gene_names:
-            listToStr = ''.join(map(str, element))
-            textfile.write(listToStr + "\n")
+            # Write gene_names to file
+            textfile = open(f'{LOC}/gene_names.txt', "w")
+            for element in gene_names:
+                listToStr = ''.join(map(str, element))
+                textfile.write(listToStr + "\n")
 
-        textfile.close()
+            textfile.close()
 
         self._explainer_run = True
 
